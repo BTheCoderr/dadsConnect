@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Meetup } from '@dadconnect/shared'
+import { Meetup } from '@dadsconnect/shared'
 
 export default function MeetupsPage() {
   const [meetups, setMeetups] = useState<Meetup[]>([])

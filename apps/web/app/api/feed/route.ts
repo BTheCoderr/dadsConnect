@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server"
 import { getSupabaseServerClient } from "@/lib/supabase-server"
 import { httpErrors, jsonOk } from "@/lib/http"
-import { rankFeed } from "@dadconnect/shared"
+import { rankFeed } from "@dadsconnect/shared"
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)

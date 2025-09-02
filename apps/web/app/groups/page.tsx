@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { DadGroup } from '@dadconnect/shared'
+import { DadGroup } from '@dadsconnect/shared'
 import { ArrowLeftIcon } from 'lucide-react'
 
 export default function GroupsPage() {

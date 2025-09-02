@@ -1,23 +1,11 @@
-import { jsonOk } from "@/lib/http"
-
-export async function GET() {
-  // TODO: replace with Supabase query once groups data exists
-  return jsonOk({
-    items: [
-      { id: "g1", name: "New Dads Support", topics: ["newborn"], memberCount: 1247, visibility: "public" },
-      { id: "g2", name: "Single Dads Unite", topics: ["single-parenting"], memberCount: 892, visibility: "public" },
-    ],
-  })
-}
-
 import { httpErrors, jsonOk } from "@/lib/http"
 import { getSupabaseServerClient } from "@/lib/supabase-server"
 
 export async function GET() {
-  const supabase = getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient()
 
   const { data, error } = await supabase
-    .from("groups")
+    .from("dad_groups")
     .select("id, name, topics, visibility, member_count")
     .order("member_count", { ascending: false })
     .limit(12)

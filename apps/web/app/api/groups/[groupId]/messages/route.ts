@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
-import { GroupMessage } from '@dadconnect/shared'
+import { GroupMessage } from '@dadsconnect/shared'
 
 export async function GET(
   req: NextRequest,

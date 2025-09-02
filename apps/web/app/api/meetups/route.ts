@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServerClient } from '@/lib/supabase-server'
-import { Meetup } from '@dadconnect/shared'
+import { Meetup } from '@dadsconnect/shared'
 
 export async function GET(req: NextRequest) {
   try {
