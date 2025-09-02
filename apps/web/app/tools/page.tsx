@@ -1,3 +1,5 @@
+"use client"
+
 export default function ToolsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
