@@ -8,12 +8,12 @@ export interface RankingContext {
 export function rankFeed(items: ContentItem[], ctx: RankingContext): ContentItem[] {
   const muted = new Set(ctx.mutedSourceIds ?? [])
   const scored = items
-    .filter((i) => !muted.has(i.sourceId))
+    .filter((i) => !muted.has(i.id)) // Use id instead of sourceId
     .map((i) => ({
       item: i,
       score:
-        (i.topics?.some((t) => ctx.interests.includes(t)) ? 10 : 0) +
-        Math.max(0, 5 - Math.min(5, ageInDays(i.publishedAt) / 2)),
+        (i.type && ctx.interests.includes(i.type) ? 10 : 0) + // Use type instead of topics
+        Math.max(0, 5 - Math.min(5, ageInDays(i.createdAt) / 2)), // Use createdAt instead of publishedAt
     }))
   return scored
     .sort((a, b) => b.score - a.score)

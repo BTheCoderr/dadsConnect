@@ -71,4 +71,39 @@ export interface MeetupAttendee {
   user?: Profile
 }
 
+// Additional types for API compatibility
+export interface ContentItem {
+  id: string
+  title: string
+  content: string
+  type: "article" | "video" | "podcast"
+  createdAt: string
+}
+
+export interface Group {
+  id: string
+  name: string
+  description?: string
+  memberCount: number
+  visibility: "public" | "private"
+}
+
+export interface Thread {
+  id: string
+  title: string
+  content: string
+  authorId: string
+  createdAt: string
+}
+
+export interface PodSession {
+  id: string
+  title: string
+  description?: string
+  startTime: string
+  endTime?: string
+  maxAttendees?: number
+  currentAttendees: number
+}
+
 
