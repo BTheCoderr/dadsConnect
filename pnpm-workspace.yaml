@@ -1,0 +1,6 @@
+packages:
+  - "dad-connect-frontend"
+  - "apps/*"
+  - "packages/*"
+
+

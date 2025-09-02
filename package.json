@@ -1,0 +1,19 @@
+{
+  "name": "dadconnect-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run -w @dadconnect/shared build && npm run -w apps/web build && npm run -w @dadconnect/mobile build",
+    "dev:web": "npm run -w apps/web dev",
+    "dev:mobile": "npm run -w @dadconnect/mobile start",
+    "typecheck": "tsc -b packages/shared",
+    "install:all": "npm install"
+  },
+  "dependencies": {
+    "typescript": "~5.3.3"
+  }
+}

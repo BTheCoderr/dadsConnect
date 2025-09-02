@@ -1,0 +1,20 @@
+{
+  "name": "@dadconnect/shared",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "zod": "^3.25.67",
+    "dayjs": "^1.11.13"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
+
+
