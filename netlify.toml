@@ -1,12 +1,12 @@
 [build]
   # Directory to change to before starting a build
-  base = "apps/web"
+  base = "."
   
   # Directory that contains the deploy-ready HTML files and assets
-  publish = ".next"
+  publish = "apps/web/.next"
   
-  # Default build command
-  command = "npm run build"
+  # Build command that builds shared packages first, then web app
+  command = "npm install && npm run build:web"
 
 [build.environment]
   NODE_VERSION = "18"

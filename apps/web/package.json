@@ -9,7 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@dadconnect/shared": "*",
+    "@dadsconnect/shared": "*",
     "@floating-ui/dom": "^1.7.4",
     "@floating-ui/react-dom": "^2.1.6",
     "@hookform/resolvers": "^3.10.0",

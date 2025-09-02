@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "npm run -w @dadsconnect/shared build && npm run -w @dadsconnect/web build && npm run -w @dadsconnect/mobile build",
-    "build:web": "npm run -w @dadsconnect/web build",
+    "build:web": "npm run -w @dadsconnect/shared build && npm run -w @dadsconnect/web build",
     "dev:web": "npm run -w @dadsconnect/web dev",
     "dev:mobile": "npm run -w @dadsconnect/mobile start",
     "typecheck": "tsc -b packages/shared",
