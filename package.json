@@ -1,5 +1,5 @@
 {
-  "name": "dadconnect-monorepo",
+  "name": "dadsconnect-monorepo",
   "private": true,
   "workspaces": [
     "apps/web",
@@ -7,10 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run -w @dadconnect/shared build && npm run -w @dadconnect/web build && npm run -w @dadconnect/mobile build",
-    "build:web": "npm run -w @dadconnect/web build",
-    "dev:web": "npm run -w @dadconnect/web dev",
-    "dev:mobile": "npm run -w @dadconnect/mobile start",
+    "build": "npm run -w @dadsconnect/shared build && npm run -w @dadsconnect/web build && npm run -w @dadsconnect/mobile build",
+    "build:web": "npm run -w @dadsconnect/web build",
+    "dev:web": "npm run -w @dadsconnect/web dev",
+    "dev:mobile": "npm run -w @dadsconnect/mobile start",
     "typecheck": "tsc -b packages/shared",
     "install:all": "npm install"
   },

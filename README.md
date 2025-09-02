@@ -1,6 +1,15 @@
-# DadConnect - A Community App for Dads
+# dadsConnect - The Ultimate Community Platform for Fathers
 
-DadConnect is a social platform designed specifically for fathers to connect, support each other, and plan activities together. From football watch parties to playground meetups, find your dad community.
+**dadsConnect** is a comprehensive social platform designed specifically for fathers to connect, support each other, and build meaningful relationships within their local communities. Whether you're a new dad looking for support, a sports enthusiast wanting to organize watch parties, or a parent seeking playdate opportunities, dadsConnect brings dads together.
+
+## 🌟 What Makes dadsConnect Special
+
+- **Local Community Focus**: Connect with dads in your area (Providence, Warwick, and beyond)
+- **Diverse Group Types**: Support groups, sports teams, book clubs, outdoor adventures, and more
+- **Practical Tools**: Growth trackers, college savings calculators, sleep planners, and budgeting tools
+- **Real-time Communication**: Live chat and instant notifications
+- **Activity Coordination**: Plan meetups, watch parties, and family-friendly events
+- **Mobile & Web**: Native mobile app with full web companion
 
 ## 🏗️ Architecture
 
@@ -71,19 +80,31 @@ npm start
 
 ## 📱 Features
 
-### Core Features
-- **Dad Groups**: Join support groups, sports groups, and interest-based communities
-- **Real-time Chat**: Chat with fellow dads in group conversations
+### 🏘️ Community Features
+- **Dad Groups**: Join support groups, sports teams, book clubs, and interest-based communities
+- **Real-time Chat**: Live group conversations with instant messaging
 - **Meetups & Activities**: Plan and join watch parties, outdoor adventures, coffee meetups, and playdates
-- **Activity Coordination**: Special features for coordinating activities like football watch parties
-- **Profile Management**: Manage your interests, kids' ages, and location
+- **Local Focus**: Connect with dads in Providence, Warwick, and surrounding areas
+- **Activity Coordination**: Special features for organizing football watch parties and family events
 
-### Technical Features
-- **Authentication**: Supabase Auth with Apple/Google OAuth
-- **Real-time**: Live chat and meetup updates
-- **Mobile-First**: Native mobile app with web companion
-- **Location-Based**: Find local groups and meetups
-- **Activity Types**: Specialized support for different dad activities
+### 🛠️ Practical Dad Tools
+- **Growth Tracker**: Monitor your child's development with BMI calculations and percentile tracking
+- **College Savings Calculator**: Plan for your child's future education with compound interest calculations
+- **Sleep Schedule Planner**: Create and manage healthy sleep routines for your family
+- **Diaper Cost Calculator**: Budget for diapers based on age and brand preferences
+- **Feeding Schedule Planner**: Organize meal times and feeding routines
+- **Baby Name Generator**: Discover unique and meaningful names for your little one
+- **Family Budget Planner**: Manage household finances with dad-focused budgeting tools
+- **Activity Planner**: Organize family activities and playdates
+- **Emergency Contacts**: Keep important contacts organized and accessible
+
+### 🔧 Technical Features
+- **Authentication**: Secure login with Supabase Auth
+- **Real-time Updates**: Live chat and instant notifications
+- **Mobile & Web**: Native mobile app with full web companion
+- **Location-Based**: Find local groups and meetups in your area
+- **Responsive Design**: Works perfectly on all devices
+- **Fast Performance**: Optimized for speed and reliability
 
 ## 🗄️ Database Schema
 
@@ -99,7 +120,7 @@ The app uses PostgreSQL with the following main tables:
 
 ### Project Structure
 ```
-dadConnect/
+dadsConnect/
 ├── apps/
 │   ├── web/                 # Next.js web app
 │   └── mobile/              # Expo React Native app
