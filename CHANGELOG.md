@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Supabase-generated TypeScript database types shared by web and mobile clients
+- typed Supabase clients so schema mismatches surface during TypeScript/build CI
 - first migration-backed DadConnect domain schema for profiles, groups, chat, discussions, meetups, content, and saves
 - Row Level Security policies tied to Supabase Auth ownership/membership
 - automatic auth-user profile creation
@@ -11,6 +13,7 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- browser Supabase environment access now uses statically inlined NEXT_PUBLIC variables
 - group and meetup APIs now rely on database-maintained counters instead of manual RPC increments
 - meetup query now selects RSVP identifiers/timestamps used by the response mapper
 - moved DadConnect to its own empty Supabase project in the existing organization

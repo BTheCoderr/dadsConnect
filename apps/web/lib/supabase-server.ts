@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers"
 import { createServerClient, type CookieOptions } from "@supabase/ssr"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "@dadsconnect/shared"
 
 function env(name: string, fallback?: string) {
   const value = process.env[name] || (fallback ? process.env[fallback] : undefined)
@@ -17,13 +18,13 @@ export async function getSupabaseServerClient() {
   const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
 
   if (bearer) {
-    return createSupabaseClient(url, key, {
+    return createSupabaseClient<Database>(url, key, {
       global: { headers: { Authorization: `Bearer ${bearer}` } },
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
     })
   }
 
-  return createServerClient(url, key, {
+  return createServerClient<Database>(url, key, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value

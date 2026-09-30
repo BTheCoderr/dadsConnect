@@ -1,14 +1,19 @@
 import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "@dadsconnect/shared"
 
-function requiredEnv(name: string, fallback?: string) {
-  const value = process.env[name] || (fallback ? process.env[fallback] : undefined)
-  if (!value) throw new Error(`Missing required environment variable: ${name}`)
-  return value
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL")
+}
+
+if (!supabaseKey) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")
 }
 
 export function getSupabaseBrowserClient() {
-  return createBrowserClient(
-    requiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    requiredEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-  )
+  return createBrowserClient<Database>(supabaseUrl, supabaseKey)
 }

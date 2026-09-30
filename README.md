@@ -24,6 +24,7 @@ DadConnect centers useful community interactions:
 | Shared code | TypeScript workspace package |
 | Auth / database | Supabase Auth + PostgreSQL |
 | Authorization | Postgres Row Level Security |
+| Database typing | Supabase-generated TypeScript schema types |
 | Repository | npm workspaces monorepo |
 
 The frontend receives only the Supabase **publishable key**. Privileged database credentials do not belong in this repository or in browser/mobile bundles.
@@ -68,6 +69,7 @@ See [setup.md](setup.md) for environment details.
 4. redesign the Postgres schema and RLS policies
 5. add migrations, generated types, tests, and CI
 6. validate web/mobile flows against the live project
+7. keep generated database types synchronized with applied migrations
 
 ## Security principles
 
