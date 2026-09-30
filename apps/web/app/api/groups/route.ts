@@ -6,7 +6,10 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient()
     
-    // Allow public access to view groups (no authentication required)
+    // RLS returns public groups to anonymous visitors and also includes
+    // private groups for signed-in members/creators.
+
+    const { data: { user } } = await supabase.auth.getUser()
 
     // Get query parameters
     const { searchParams } = new URL(req.url)
@@ -18,7 +21,6 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from('dad_groups')
       .select('*')
-      .eq('visibility', 'public')
 
     if (category) {
       query = query.eq('category', category)
@@ -39,6 +41,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch groups' }, { status: 500 })
     }
 
+    const memberGroupIds = new Set<string>()
+    if (user && groups?.length) {
+      const { data: memberships, error: membershipError } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', user.id)
+        .in('group_id', groups.map(group => group.id))
+
+      if (membershipError) {
+        console.error('Error fetching memberships:', membershipError)
+        return NextResponse.json({ error: 'Failed to load group memberships' }, { status: 500 })
+      }
+
+      memberships?.forEach(membership => memberGroupIds.add(membership.group_id))
+    }
+
     // Transform data to match our types
     const transformedGroups: DadGroup[] = groups?.map(group => ({
       id: group.id,
@@ -52,6 +70,7 @@ export async function GET(req: NextRequest) {
       memberCount: 1,
       createdBy: group.created_by,
       createdAt: group.created_at,
+      isMember: memberGroupIds.has(group.id),
     })) || []
 
     return NextResponse.json({ groups: transformedGroups })

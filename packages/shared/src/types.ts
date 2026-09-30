@@ -8,6 +8,7 @@ export interface Profile {
   interests: string[]
   kidsAges: string[]
   createdAt: string
+  cityOptIn?: boolean
 }
 
 export interface DadGroup {
@@ -22,12 +23,13 @@ export interface DadGroup {
   memberCount: number
   createdBy: string
   createdAt: string
+  isMember?: boolean
 }
 
 export interface GroupMember {
   groupId: string
   userId: string
-  role: "member" | "mod" | "owner"
+  role: "member" | "moderator" | "owner"
   joinedAt: string
 }
 
@@ -36,7 +38,7 @@ export interface GroupMessage {
   groupId: string
   authorId: string
   content: string
-  messageType: "text" | "image" | "link" | "event"
+  messageType: "text" | "system"
   metadata?: Record<string, any> | null
   createdAt: string
   author?: Profile
@@ -57,7 +59,7 @@ export interface Meetup {
   endTime?: string | null
   maxAttendees?: number | null
   currentAttendees: number
-  status: "upcoming" | "ongoing" | "completed" | "cancelled"
+  status: "upcoming" | "completed" | "cancelled"
   createdAt: string
   creator?: Profile
   attendees?: MeetupAttendee[]

@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- member-aware group discovery using the same RLS rules as the database
+- missing web group chat route with initial history, posting, and Supabase Realtime refresh
+- joined/private state in shared group models and group cards
 - real Supabase email/password sign-up and sign-in flow
 - email-confirmation callback that exchanges auth codes for cookie-backed sessions
 - persisted onboarding for kids' age ranges, interests, and opt-in city discovery
@@ -17,6 +20,8 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- groups API no longer hard-codes public visibility; RLS now decides which public/private groups a caller can see
+- shared membership/message/meetup unions now match database constraints
 - browser Supabase environment access now uses statically inlined NEXT_PUBLIC variables
 - group and meetup APIs now rely on database-maintained counters instead of manual RPC increments
 - meetup query now selects RSVP identifiers/timestamps used by the response mapper

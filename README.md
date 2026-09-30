@@ -9,7 +9,7 @@
 DadConnect centers useful community interactions:
 
 - local and interest-based dad groups
-- group conversations
+- group conversations with member-only Realtime chat
 - meetups, playdates, watch parties, coffee meetups, and outdoor activities
 - profiles with interests and family-stage context
 - practical parenting tools
@@ -73,7 +73,7 @@ See [setup.md](setup.md) for environment details.
 
 ## Authentication flow
 
-Web signup/login now uses Supabase Auth directly. Email confirmations return through `/auth/callback`, new Auth users automatically receive a profile row, and onboarding persists family-stage interests and optional city discovery preferences under RLS.
+Web signup/login now uses Supabase Auth directly. Group discovery is RLS-driven, signed-in membership state is returned by the groups API, and joined members can use live group chat backed by Supabase Realtime. Email confirmations return through `/auth/callback`, new Auth users automatically receive a profile row, and onboarding persists family-stage interests and optional city discovery preferences under RLS.
 
 The UI intentionally exposes only email/password auth until an OAuth provider is actually configured.
 
