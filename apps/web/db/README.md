@@ -25,3 +25,8 @@ Group member counts and meetup attendee counts are database-maintained through t
 All exposed tables have RLS enabled. Public access is limited to public group/discussion discovery and feed content. User-owned writes are tied to `auth.uid()`; group chat is member-only; private groups are visible only to members/creators.
 
 The migration intentionally does not contain seed users or service-role credentials.
+
+
+## Hardening migration
+
+The second migration moves RLS/trigger helper functions out of the exposed `public` API schema into a dedicated `private` schema, removes client execution from trigger-only functions, optimizes `auth.uid()` evaluation inside policies, and adds covering indexes for every foreign-key path flagged by the Supabase advisor.

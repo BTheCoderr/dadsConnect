@@ -25,6 +25,10 @@
 - unused server helper that expected a service-role key and direct Postgres URL
 
 ### Security
+- moved SECURITY DEFINER RLS helpers into a non-exposed private schema
+- revoked client execution from internal trigger functions
+- optimized auth identity checks in RLS policies using statement-level init plans
+- added missing foreign-key indexes reported by the Supabase performance advisor
 - removed the stale direct Postgres credential from public environment/setup examples
 - removed service-role configuration from browser/mobile setup guidance
 - documented the publishable-key + RLS trust boundary
