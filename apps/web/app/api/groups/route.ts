@@ -91,23 +91,30 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, description, category, topics, city, state, visibility = 'public' } = body
+    const name = String(body.name || '').trim()
+    const description = String(body.description || '').trim()
+    const category = String(body.category || '')
+    const topics = Array.isArray(body.topics)
+      ? body.topics.map((topic: unknown) => String(topic).trim()).filter(Boolean).slice(0, 12)
+      : []
+    const city = String(body.city || '').trim()
+    const state = String(body.state || '').trim()
+    const visibility = body.visibility === 'private' ? 'private' : 'public'
+    const allowedCategories = new Set(['support','activities','sports','local','interests'])
 
-    // Validate required fields
-    if (!name || !category) {
-      return NextResponse.json({ error: 'Name and category are required' }, { status: 400 })
+    if (name.length < 2 || name.length > 80 || !allowedCategories.has(category)) {
+      return NextResponse.json({ error: 'Use a group name between 2 and 80 characters and a valid category' }, { status: 400 })
     }
 
-    // Create group
     const { data: group, error: groupError } = await supabase
       .from('dad_groups')
       .insert({
         name,
-        description,
+        description: description || null,
         category,
-        topics: topics || [],
-        city,
-        state,
+        topics,
+        city: city || null,
+        state: state || null,
         visibility,
         created_by: user.id
       })
@@ -130,22 +137,30 @@ export async function POST(req: NextRequest) {
 
     if (memberError) {
       console.error('Error adding creator to group:', memberError)
-      return NextResponse.json({ error: 'Failed to add creator to group' }, { status: 500 })
+      await supabase.from('dad_groups').delete().eq('id', group.id)
+      return NextResponse.json({ error: 'Failed to finish group creation' }, { status: 500 })
     }
 
-    // Transform response
+    const { data: created } = await supabase
+      .from('dad_groups')
+      .select('*')
+      .eq('id', group.id)
+      .single()
+
+    const row = created || group
     const transformedGroup: DadGroup = {
-      id: group.id,
-      name: group.name,
-      description: group.description,
-      category: group.category,
-      topics: group.topics,
-      city: group.city,
-      state: group.state,
-      visibility: group.visibility,
-      memberCount: group.member_count,
-      createdBy: group.created_by,
-      createdAt: group.created_at,
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      category: row.category,
+      topics: row.topics,
+      city: row.city,
+      state: row.state,
+      visibility: row.visibility,
+      memberCount: row.member_count,
+      createdBy: row.created_by,
+      createdAt: row.created_at,
+      isMember: true,
     }
 
     return NextResponse.json({ group: transformedGroup }, { status: 201 })

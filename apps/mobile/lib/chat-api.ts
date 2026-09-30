@@ -36,6 +36,22 @@ export class ChatAPI {
     await request(`/api/groups/${groupId}/join`, { method: 'POST' })
   }
 
+  static async createGroup(input: {
+    name: string
+    description?: string
+    category: DadGroup['category']
+    topics: string[]
+    city?: string
+    state?: string
+    visibility: DadGroup['visibility']
+  }): Promise<DadGroup> {
+    const response = await request<{ group: DadGroup }>('/api/groups', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
+    return response.group
+  }
+
   static async getMessages(groupId: string): Promise<GroupMessage[]> {
     const response = await request<{ messages: GroupMessage[] }>(`/api/groups/${groupId}/messages`)
     return response.messages || []
@@ -52,6 +68,26 @@ export class ChatAPI {
   static async getMeetups(): Promise<Meetup[]> {
     const response = await request<{ meetups: Meetup[] }>('/api/meetups')
     return response.meetups || []
+  }
+
+  static async createMeetup(input: {
+    title: string
+    description?: string
+    activityType: Meetup['activityType']
+    location?: string
+    address?: string
+    city?: string
+    state?: string
+    startTime: string
+    endTime?: string
+    maxAttendees?: number | null
+    groupId?: string | null
+  }): Promise<Meetup> {
+    const response = await request<{ meetup: Meetup }>('/api/meetups', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
+    return response.meetup
   }
 
   static async rsvp(meetupId: string, status: MeetupAttendee['status']): Promise<{ currentAttendees: number }> {

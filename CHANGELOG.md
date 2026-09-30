@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- mobile Create Group flow with category, topics, public/private visibility, and optional location
+- mobile Create Meetup flow for standalone or joined-group events with date/time, location, and capacity
 - live mobile Feed tab with cursor pagination, source opening, and real saved-item writes
 - live mobile Library with persistent read/unread, delete, share, and source opening
 - mobile email/password sign-in and sign-up backed by Supabase Auth
@@ -48,6 +50,7 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- group creation validates mobile/web inputs consistently, cleans up failed owner membership creation, and returns the trigger-refreshed member count
 - signed-in mobile routing now lands on Feed as the product home
 - shared API helper handles 204 responses and exposes typed saved-library update/delete contracts
 - mobile TypeScript configuration now resolves the app-local `@/*` alias used by Expo routes

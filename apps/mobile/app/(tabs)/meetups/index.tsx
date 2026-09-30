@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native'
+import { useFocusEffect, useRouter } from 'expo-router'
 import type { Meetup, MeetupAttendee } from '@dadconnect/shared'
 import { ChatAPI } from '../../../lib/chat-api'
 
 export default function MeetupsScreen() {
+  const router = useRouter()
   const [meetups, setMeetups] = useState<Meetup[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
@@ -18,7 +20,11 @@ export default function MeetupsScreen() {
     }
   }
 
-  useEffect(() => { void loadMeetups() }, [])
+  useFocusEffect(
+    React.useCallback(() => {
+      void loadMeetups()
+    }, []),
+  )
 
   const rsvp = async (meetup: Meetup, status: MeetupAttendee['status']) => {
     setSaving(meetup.id)
@@ -57,7 +63,10 @@ export default function MeetupsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}><Text style={styles.heading}>Dad Meetups</Text><Text style={styles.subtitle}>Plans and RSVPs from the live DadConnect backend</Text></View>
+      <View style={styles.header}>
+        <View style={styles.headerCopy}><Text style={styles.heading}>Dad Meetups</Text><Text style={styles.subtitle}>Plans and RSVPs from the live DadConnect backend</Text></View>
+        <TouchableOpacity style={styles.createButton} onPress={() => router.push('/(tabs)/meetups/create')}><Text style={styles.createButtonText}>+ Create</Text></TouchableOpacity>
+      </View>
       <FlatList data={meetups} renderItem={renderMeetup} keyExtractor={item => item.id} contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={loadMeetups} />}
         ListEmptyComponent={!loading ? <Text style={styles.empty}>No upcoming meetups yet.</Text> : null} />
@@ -66,7 +75,7 @@ export default function MeetupsScreen() {
 }
 
 const styles=StyleSheet.create({
-  container:{flex:1,backgroundColor:'#f5f5f5'},header:{padding:18,backgroundColor:'white',borderBottomWidth:1,borderBottomColor:'#e5e5e5'},
+  container:{flex:1,backgroundColor:'#f5f5f5'},header:{padding:18,backgroundColor:'white',borderBottomWidth:1,borderBottomColor:'#e5e5e5',flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},headerCopy:{flex:1},createButton:{backgroundColor:'#1473e6',paddingHorizontal:13,paddingVertical:9,borderRadius:9},createButtonText:{color:'white',fontWeight:'800',fontSize:12},
   heading:{fontSize:26,fontWeight:'700',color:'#222'},subtitle:{marginTop:4,color:'#666'},list:{padding:16,gap:12},card:{backgroundColor:'white',padding:16,borderRadius:14},
   type:{fontSize:11,fontWeight:'700',color:'#1473e6'},title:{fontSize:18,fontWeight:'700',marginTop:4,color:'#222'},description:{fontSize:14,color:'#555',marginTop:8,lineHeight:20},
   meta:{fontSize:13,color:'#666',marginTop:8},attendees:{fontSize:13,fontWeight:'600',color:'#1473e6',marginTop:8},actions:{flexDirection:'row',gap:6,marginTop:14},
