@@ -306,6 +306,41 @@ export type Database = {
           },
         ]
       }
+      profile_private: {
+        Row: {
+          city: string | null
+          city_opt_in: boolean
+          kids_ages: string[]
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          city_opt_in?: boolean
+          kids_ages?: string[]
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          city_opt_in?: boolean
+          kids_ages?: string[]
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_private_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

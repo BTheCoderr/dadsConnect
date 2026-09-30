@@ -37,18 +37,17 @@ export default function OnboardingPage(){
         router.replace("/login")
         return
       }
-      const {data}=await supabase
-        .from("profiles")
-        .select("kids_ages,interests,city,state,city_opt_in")
-        .eq("id",user.id)
-        .maybeSingle()
+      const [{data:profile},{data:privateProfile}]=await Promise.all([
+        supabase.from("profiles").select("interests").eq("id",user.id).maybeSingle(),
+        supabase.from("profile_private").select("kids_ages,city,state,city_opt_in").eq("user_id",user.id).maybeSingle(),
+      ])
       if(cancelled) return
-      if(data){
-        if(data.kids_ages.length) setKidAges(data.kids_ages)
-        setInterests(data.interests)
-        setCity(data.city || "")
-        setState(data.state || "")
-        setShareCity(data.city_opt_in)
+      if(profile) setInterests(profile.interests)
+      if(privateProfile){
+        if(privateProfile.kids_ages.length) setKidAges(privateProfile.kids_ages)
+        setCity(privateProfile.city || "")
+        setState(privateProfile.state || "")
+        setShareCity(privateProfile.city_opt_in)
       }
       setLoading(false)
     })()
@@ -79,17 +78,18 @@ export default function OnboardingPage(){
       return
     }
 
-    const {error:updateError}=await supabase
-      .from("profiles")
-      .update({
+    const [profileUpdate,privateUpdate]=await Promise.all([
+      supabase.from("profiles").update({interests}).eq("id",user.id),
+      supabase.from("profile_private").upsert({
+        user_id:user.id,
         kids_ages:kidAges.map(value => value.trim()).filter(Boolean),
-        interests,
         city:city.trim() || null,
         state:state.trim() || null,
         city_opt_in:Boolean(shareCity && city.trim()),
-      })
-      .eq("id",user.id)
+      },{onConflict:"user_id"}),
+    ])
 
+    const updateError=profileUpdate.error || privateUpdate.error
     if(updateError){
       setError(updateError.message)
       setSaving(false)

@@ -46,13 +46,12 @@ export default function LoginPage() {
       return
     }
 
-    const {data:profile}=await supabase
-      .from("profiles")
-      .select("kids_ages,interests")
-      .eq("id",user.id)
-      .maybeSingle()
+    const [{data:profile},{data:privateProfile}]=await Promise.all([
+      supabase.from("profiles").select("interests").eq("id",user.id).maybeSingle(),
+      supabase.from("profile_private").select("kids_ages").eq("user_id",user.id).maybeSingle(),
+    ])
 
-    const needsOnboarding=!profile || (profile.kids_ages.length === 0 && profile.interests.length === 0)
+    const needsOnboarding=!profile || !privateProfile || (privateProfile.kids_ages.length === 0 && profile.interests.length === 0)
     router.replace(needsOnboarding ? "/onboarding" : "/feed")
     router.refresh()
   }

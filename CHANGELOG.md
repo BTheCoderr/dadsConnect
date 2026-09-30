@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- editable public profile identity with real account activity counts
+- safe member profile route exposing only community-facing fields
+- profile UI that clearly separates public identity from self-only family/location preferences
 - self-only profile_private table for kids' age ranges and optional location preferences
 - compatibility trigger that redirects legacy profile privacy-field writes into the private table
 - community-aware feed sections backed by live discussions, meetups, groups, and saved-item count
@@ -37,6 +40,8 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- login and onboarding now read/write the self-only profile_private table directly
+- generated database types refreshed after the profile privacy migration
 - shared ContentItem model and ranker now match the live Supabase content table
 - feed content API joins real source names and keeps optional profile-interest personalization
 - meetup API accepts a group filter so group surfaces use the same RLS-protected source of truth

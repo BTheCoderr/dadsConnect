@@ -77,6 +77,10 @@ Web signup/login now uses Supabase Auth directly. Group discovery is RLS-driven,
 
 The UI intentionally exposes only email/password auth until an OAuth provider is actually configured. Feed ranking uses the signed-in profile's interests when content exists, while discussions, groups, and upcoming meetups are loaded from live RLS-protected data.
 
+## Profile privacy
+
+Community-facing profiles contain name, avatar, bio, and interests. Family-stage age ranges and optional location preferences live in a separate `profile_private` row protected by owner-only RLS. Member profile pages never query that private table.
+
 ## Security principles
 
 - client applications use a publishable key, never a service-role key
