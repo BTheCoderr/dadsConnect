@@ -150,7 +150,7 @@ export default function CreateMeetupScreen(){
   )
 }
 
-function Field({label,children}:{label:string;children:React.ReactNode}){
+function Field({label,children}:{label:string;children:any}){
   return <View style={styles.field}><Text style={styles.label}>{label}</Text>{children}</View>
 }
 
