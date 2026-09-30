@@ -8,7 +8,7 @@ export async function GET(_: Request, { params }: { params: { groupId: string } 
   const parsed = paramsSchema.safeParse(params)
   if (!parsed.success) return httpErrors.badRequest("Invalid group id", parsed.error.flatten())
 
-  const supabase = getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient()
 
   const { data, error } = await supabase
     .from("threads")

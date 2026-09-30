@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { getSupabaseServerClient } from "@/lib/supabase-server"
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const supabase = getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient()
   const authHeader = req.headers.get("authorization") || req.headers.get("Authorization")
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
   const {

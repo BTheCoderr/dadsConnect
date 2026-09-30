@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { getSupabaseServerClient } from '@/lib/supabase-server'
 import { GroupMessage } from '@dadsconnect/shared'
 
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { groupId: string } }
 ) {
   try {
-    const supabase = createClient()
+    const supabase = await getSupabaseServerClient()
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -82,7 +82,7 @@ export async function POST(
   { params }: { params: { groupId: string } }
 ) {
   try {
-    const supabase = createClient()
+    const supabase = await getSupabaseServerClient()
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
