@@ -30,8 +30,10 @@ export async function GET(req: NextRequest) {
           avatar_url
         ),
         meetup_attendees(
+          meetup_id,
           user_id,
           status,
+          joined_at,
           profiles!meetup_attendees_user_id_fkey(
             id,
             name,
@@ -77,7 +79,7 @@ export async function GET(req: NextRequest) {
       startTime: meetup.start_time,
       endTime: meetup.end_time,
       maxAttendees: meetup.max_attendees,
-      currentAttendees: meetup.current_attendees,
+      currentAttendees: 1,
       status: meetup.status,
       createdAt: meetup.created_at,
       creator: meetup.profiles ? {
@@ -172,7 +174,6 @@ export async function POST(req: NextRequest) {
         start_time: startTime,
         end_time: endTime || null,
         max_attendees: maxAttendees || null,
-        current_attendees: 1, // Creator is first attendee
         status: 'upcoming',
       })
       .select()

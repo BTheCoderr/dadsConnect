@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       city: group.city,
       state: group.state,
       visibility: group.visibility,
-      memberCount: group.member_count,
+      memberCount: 1,
       createdBy: group.created_by,
       createdAt: group.created_at,
     })) || []
@@ -90,8 +90,7 @@ export async function POST(req: NextRequest) {
         city,
         state,
         visibility,
-        created_by: user.id,
-        member_count: 1, // Creator is first member
+        created_by: user.id
       })
       .select()
       .single()

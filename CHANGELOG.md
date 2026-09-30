@@ -3,9 +3,16 @@
 ## Unreleased
 
 ### Added
+- first migration-backed DadConnect domain schema for profiles, groups, chat, discussions, meetups, content, and saves
+- Row Level Security policies tied to Supabase Auth ownership/membership
+- automatic auth-user profile creation
+- database-maintained group member and meetup attendee counts
+- Realtime publication for group messages
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- group and meetup APIs now rely on database-maintained counters instead of manual RPC increments
+- meetup query now selects RSVP identifiers/timestamps used by the response mapper
 - moved DadConnect to its own empty Supabase project in the existing organization
 - replaced legacy anon-key naming with publishable-key configuration while retaining compatibility
 - repaired cookie-session and mobile bearer-token Supabase client construction

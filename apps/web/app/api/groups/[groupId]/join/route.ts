@@ -47,16 +47,6 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to join group' }, { status: 500 })
     }
 
-    // Update member count
-    const { error: updateError } = await supabase.rpc('increment_group_member_count', {
-      group_id: groupId
-    })
-
-    if (updateError) {
-      console.error('Error updating member count:', updateError)
-      // Don't fail the request, just log the error
-    }
-
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error in join group API:', error)
@@ -89,16 +79,6 @@ export async function DELETE(
     if (leaveError) {
       console.error('Error leaving group:', leaveError)
       return NextResponse.json({ error: 'Failed to leave group' }, { status: 500 })
-    }
-
-    // Update member count
-    const { error: updateError } = await supabase.rpc('decrement_group_member_count', {
-      group_id: groupId
-    })
-
-    if (updateError) {
-      console.error('Error updating member count:', updateError)
-      // Don't fail the request, just log the error
     }
 
     return NextResponse.json({ success: true })

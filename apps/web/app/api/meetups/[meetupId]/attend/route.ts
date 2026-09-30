@@ -64,16 +64,6 @@ export async function POST(
       }
     }
 
-    // Update current attendees count
-    const { error: updateCountError } = await supabase.rpc('update_meetup_attendee_count', {
-      meetup_id: meetupId
-    })
-
-    if (updateCountError) {
-      console.error('Error updating attendee count:', updateCountError)
-      // Don't fail the request, just log the error
-    }
-
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error in attend meetup API:', error)
@@ -106,16 +96,6 @@ export async function DELETE(
     if (deleteError) {
       console.error('Error removing attendance:', deleteError)
       return NextResponse.json({ error: 'Failed to remove attendance' }, { status: 500 })
-    }
-
-    // Update current attendees count
-    const { error: updateCountError } = await supabase.rpc('update_meetup_attendee_count', {
-      meetup_id: meetupId
-    })
-
-    if (updateCountError) {
-      console.error('Error updating attendee count:', updateCountError)
-      // Don't fail the request, just log the error
     }
 
     return NextResponse.json({ success: true })

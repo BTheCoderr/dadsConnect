@@ -1,16 +1,27 @@
 # DadConnect database
 
-The active Supabase project is intentionally empty while the replacement schema is designed and reviewed.
-
 Project ref: `swkmxrkwjlwtauymocmg`
 
-The legacy schema and seed files were removed because they mixed stale assumptions, fake auth-user IDs, and an older Supabase project configuration.
+The active schema is tracked in `supabase/migrations/` and is designed around Supabase Auth + PostgreSQL Row Level Security.
 
-The replacement database work will be introduced as reviewed migrations with:
+## Initial domain model
 
-- explicit RLS on every exposed table
-- `auth.uid()` ownership and membership checks
-- no service-role key in browser/mobile code
-- indexed authorization columns
-- generated TypeScript database types
-- CI/schema verification before app data is loaded
+- `profiles` — one application profile per Supabase Auth user
+- `dad_groups` — public/private communities
+- `group_members` — membership + owner/moderator/member roles
+- `group_messages` — RLS-protected member chat
+- `threads` — group discussions
+- `meetups` — standalone or group-associated events
+- `meetup_attendees` — RSVP state
+- `sources` / `content` — read-only feed catalog
+- `saves` — per-user library entries
+
+## Integrity
+
+Group member counts and meetup attendee counts are database-maintained through triggers rather than client-maintained counters. New Supabase Auth users receive a profile row automatically.
+
+## Security model
+
+All exposed tables have RLS enabled. Public access is limited to public group/discussion discovery and feed content. User-owned writes are tied to `auth.uid()`; group chat is member-only; private groups are visible only to members/creators.
+
+The migration intentionally does not contain seed users or service-role credentials.
