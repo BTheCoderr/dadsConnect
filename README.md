@@ -9,7 +9,7 @@
 DadConnect centers useful community interactions:
 
 - local and interest-based dad groups
-- group conversations with member-only Realtime chat
+- group conversations with member-only Realtime chat plus RLS-protected longer-form group discussions
 - authenticated meetup creation, detail pages, capacity-aware Going / Maybe / Can't Go RSVPs, plus group-linked meetups that can be planned directly from a community
 - profiles with interests and family-stage context
 - practical parenting tools

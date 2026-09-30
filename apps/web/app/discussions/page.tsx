@@ -1,268 +1,158 @@
-import Link from 'next/link'
-import { ArrowLeftIcon } from 'lucide-react'
+"use client"
 
-export default function DiscussionsPage() {
+import type React from "react"
+import { useEffect,useMemo,useState } from "react"
+import Link from "next/link"
+import type { DadGroup,Thread } from "@dadsconnect/shared"
+
+export default function DiscussionsPage(){
+  const [threads,setThreads]=useState<Thread[]>([])
+  const [groups,setGroups]=useState<DadGroup[]>([])
+  const [selectedGroup,setSelectedGroup]=useState("all")
+  const [composerOpen,setComposerOpen]=useState(false)
+  const [loading,setLoading]=useState(true)
+  const [saving,setSaving]=useState(false)
+  const [error,setError]=useState<string | null>(null)
+
+  const loadThreads=async () => {
+    setError(null)
+    try{
+      const query=selectedGroup === "all" ? "" : `?group_id=${encodeURIComponent(selectedGroup)}`
+      const response=await fetch("/api/threads" + query,{credentials:"include"})
+      if(response.status === 401){
+        window.location.href="/login"
+        return
+      }
+      const data=await response.json()
+      if(!response.ok) throw new Error(data.error || "Failed to load discussions")
+      setThreads(data.threads || [])
+    }catch(error){
+      setError(error instanceof Error ? error.message : "Failed to load discussions")
+    }finally{
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { void loadThreads() },[selectedGroup])
+
+  useEffect(() => {
+    ;(async () => {
+      const response=await fetch("/api/groups",{credentials:"include"})
+      if(!response.ok) return
+      const data=await response.json()
+      setGroups((data.groups || []).filter((group:DadGroup) => group.isMember))
+    })()
+  },[])
+
+  const createDiscussion=async (event:React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSaving(true)
+    setError(null)
+    const form=new FormData(event.currentTarget)
+    const payload={
+      groupId:String(form.get("groupId") || ""),
+      title:String(form.get("title") || ""),
+      body:String(form.get("body") || ""),
+    }
+
+    try{
+      const response=await fetch("/api/threads",{
+        method:"POST",
+        credentials:"include",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(payload),
+      })
+      const data=await response.json().catch(() => ({}))
+      if(!response.ok) throw new Error(data.error || "Failed to start discussion")
+      setComposerOpen(false)
+      setSelectedGroup(payload.groupId || "all")
+      await loadThreads()
+    }catch(error){
+      setError(error instanceof Error ? error.message : "Failed to start discussion")
+    }finally{
+      setSaving(false)
+    }
+  }
+
+  const visibleGroups=useMemo(
+    () => [{id:"all",name:"All visible groups"} as Pick<DadGroup,"id"|"name">,...groups],
+    [groups],
+  )
+
+  if(loading) return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-500">Loading discussions…</div>
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-                <ArrowLeftIcon className="h-5 w-5 mr-2" />
-                Back to Home
-              </Link>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">Discussions</h1>
-            <div className="flex items-center space-x-4">
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                Start Discussion
-              </button>
-            </div>
+    <main className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <Link href="/" className="text-sm text-blue-600">← Home</Link>
+            <h1 className="mt-3 text-3xl font-bold text-gray-900">Discussions</h1>
+            <p className="mt-2 text-gray-600">Longer-form conversations inside the groups you can see.</p>
           </div>
+          <button onClick={() => setComposerOpen(current => !current)} disabled={!groups.length}
+            className="rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white disabled:bg-gray-300">
+            {composerOpen ? "Close composer" : "Start discussion"}
+          </button>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Sidebar - Categories */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Categories</h3>
-              <div className="space-y-2">
-                <button className="block w-full text-left text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded transition-colors">
-                  All Discussions
-                </button>
-                <button className="block w-full text-left text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded transition-colors">
-                  New Dads
-                </button>
-                <button className="block w-full text-left text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded transition-colors">
-                  Single Dads
-                </button>
-                <button className="block w-full text-left text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded transition-colors">
-                  Work-Life Balance
-                </button>
-                <button className="block w-full text-left text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded transition-colors">
-                  Parenting Tips
-                </button>
-                <button className="block w-full text-left text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded transition-colors">
-                  Health & Wellness
-                </button>
-              </div>
+        {!groups.length && <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">Join a group before starting a discussion. You can still read discussions from groups visible to your account.</div>}
+        {error && <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+
+        {composerOpen && (
+          <form onSubmit={createDiscussion} className="mb-8 space-y-4 rounded-xl bg-white p-6 shadow-sm">
+            <div className="grid gap-4 sm:grid-cols-[220px_1fr]">
+              <label className="text-sm font-medium">Group
+                <select name="groupId" required className="mt-2 w-full rounded-lg border px-3 py-2">
+                  <option value="">Choose a joined group</option>
+                  {groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
+                </select>
+              </label>
+              <label className="text-sm font-medium">Title
+                <input name="title" required maxLength={160} className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="What do you want to talk about?" />
+              </label>
             </div>
-          </div>
+            <label className="block text-sm font-medium">Discussion
+              <textarea name="body" required maxLength={10000} rows={6} className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="Add context, what you have tried, or what kind of perspective would help." />
+            </label>
+            <button type="submit" disabled={saving} className="rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white disabled:opacity-50">{saving ? "Posting…" : "Post discussion"}</button>
+          </form>
+        )}
 
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6 border-b">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">Recent Discussions</h2>
-                  <div className="flex items-center space-x-2">
-                    <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                      <option>Most Recent</option>
-                      <option>Most Popular</option>
-                      <option>Most Replies</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="divide-y divide-gray-200">
-                {/* Discussion Item */}
-                <div className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">JD</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-gray-900">Sleep training tips for 6-month-old</h3>
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">New Dads</span>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-3">
-                        My little one is having trouble sleeping through the night. Any experienced dads have advice on sleep training methods that worked for them?
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>by John D. • 2 hours ago</span>
-                        <span>12 replies</span>
-                        <span>8 likes</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Discussion Item */}
-                <div className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-semibold text-sm">MS</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-gray-900">Best activities for rainy days with toddlers</h3>
-                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Parenting Tips</span>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-3">
-                        It's been raining all week and my 3-year-old is getting restless. What are your go-to indoor activities to keep them entertained?
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>by Mike S. • 4 hours ago</span>
-                        <span>18 replies</span>
-                        <span>15 likes</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Discussion Item */}
-                <div className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <span className="text-purple-600 font-semibold text-sm">AR</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-gray-900">Balancing work and family time</h3>
-                        <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">Work-Life Balance</span>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-3">
-                        I'm struggling to find the right balance between my demanding job and being present for my kids. How do other working dads manage this?
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>by Alex R. • 6 hours ago</span>
-                        <span>25 replies</span>
-                        <span>22 likes</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Discussion Item */}
-                <div className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                      <span className="text-yellow-600 font-semibold text-sm">TW</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-gray-900">Healthy meal prep ideas for busy dads</h3>
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Health & Wellness</span>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-3">
-                        Looking for quick, healthy meal prep ideas that the whole family will enjoy. What are your favorite recipes?
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>by Tom W. • 8 hours ago</span>
-                        <span>14 replies</span>
-                        <span>11 likes</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 border-t">
-                <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition-colors">
-                  Load More Discussions
-                </button>
-              </div>
-            </div>
-          </div>
+        <div className="mb-5 flex items-center gap-3">
+          <label className="text-sm font-medium text-gray-700">Show
+            <select value={selectedGroup} onChange={event => setSelectedGroup(event.target.value)} className="ml-2 rounded-lg border bg-white px-3 py-2">
+              {visibleGroups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
+            </select>
+          </label>
         </div>
+
+        <section className="space-y-4">
+          {threads.map(thread => {
+            const initials=(thread.author?.name || "DadConnect").split(" ").map(part => part[0]).join("").slice(0,2).toUpperCase()
+            return (
+              <article key={thread.id} className="rounded-xl bg-white p-6 shadow-sm">
+                <div className="flex gap-4">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">{initials}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-lg font-semibold text-gray-900">{thread.title}</h2>
+                      {thread.group && <Link href={`/groups/${thread.group.id}/chat`} className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">{thread.group.name}</Link>}
+                    </div>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">{thread.body}</p>
+                    <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-500">
+                      <span>{thread.author?.name || "DadConnect member"}</span>
+                      <time>{new Date(thread.ts).toLocaleString()}</time>
+                      {thread.reactions && Object.keys(thread.reactions).length > 0 && <span>{Object.values(thread.reactions).reduce((sum,value) => sum + Number(value || 0),0)} reactions</span>}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            )
+          })}
+          {!threads.length && <div className="rounded-xl bg-white p-10 text-center text-gray-500">No discussions yet in this view. Start one from a group you belong to.</div>}
+        </section>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Community</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a href="/groups" className="hover:text-blue-600">
-                    Groups
-                  </a>
-                </li>
-                <li>
-                  <a href="/meetups" className="hover:text-blue-600">
-                    Events
-                  </a>
-                </li>
-                <li>
-                  <a href="/discussions" className="hover:text-blue-600">
-                    Discussions
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Resources</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a href="/library" className="hover:text-blue-600">
-                    Articles
-                  </a>
-                </li>
-                <li>
-                  <a href="/guides" className="hover:text-blue-600">
-                    Guides
-                  </a>
-                </li>
-                <li>
-                  <a href="/tools" className="hover:text-blue-600">
-                    Tools
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Support</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a href="/help" className="hover:text-blue-600">
-                    Help Center
-                  </a>
-                </li>
-                <li>
-                  <a href="/contact" className="hover:text-blue-600">
-                    Contact Us
-                  </a>
-                </li>
-                <li>
-                  <a href="/safety" className="hover:text-blue-600">
-                    Safety
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a href="/privacy" className="hover:text-blue-600">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="/terms" className="hover:text-blue-600">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="/guidelines" className="hover:text-blue-600">
-                    Community Guidelines
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 mt-8 pt-8 text-center">
-            <p className="text-sm text-gray-500">© 2024 DadConnect. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </main>
   )
 }

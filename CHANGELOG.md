@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- live discussions index backed by the RLS-protected threads table
+- authenticated discussion composer limited to joined groups
+- author and group attribution on real discussion records
+- group filtering for visible discussions
 - group-linked meetup planning from joined group cards and group chat
 - upcoming group meetup cards inside the live chat experience
 - direct meetup-to-group navigation
@@ -45,6 +49,7 @@
 - rewrote repository/setup documentation around the active rebuild
 
 ### Removed
+- hard-coded demo discussion cards, fake reply counts, and placeholder author identities
 - fake Google/Apple auth controls that were not connected to configured providers
 - placeholder login/signup redirects and hard-coded profile identity
 - legacy schema/seed SQL that targeted the retired DadConnect database

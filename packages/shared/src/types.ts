@@ -93,10 +93,14 @@ export interface Group {
 
 export interface Thread {
   id: string
-  title: string
-  content: string
+  groupId: string
   authorId: string
-  createdAt: string
+  title: string
+  body: string
+  ts: string
+  reactions?: Record<string, number>
+  author?: Pick<Profile, "id" | "name" | "avatarUrl">
+  group?: Pick<DadGroup, "id" | "name" | "category">
 }
 
 export interface PodSession {
