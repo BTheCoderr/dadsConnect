@@ -1,229 +1,126 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect,useMemo,useState } from 'react'
 import Link from 'next/link'
-import { Meetup } from '@dadsconnect/shared'
+import type { Meetup,MeetupAttendee } from '@dadsconnect/shared'
 
-export default function MeetupsPage() {
-  const [meetups, setMeetups] = useState<Meetup[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<string>('all')
+const filters=[
+  ['all','All meetups'],['watch_party','Watch parties'],['outdoor','Outdoor'],
+  ['sports','Sports'],['coffee','Coffee'],['playdate','Playdates'],['other','Other'],
+] as const
 
-  useEffect(() => {
-    loadMeetups()
-  }, [])
+const labels:Record<Meetup['activityType'],string>={
+  watch_party:'Watch party',outdoor:'Outdoor',sports:'Sports',coffee:'Coffee',playdate:'Playdate',other:'Other',
+}
 
-  const loadMeetups = async () => {
-    try {
-      const response = await fetch('/api/meetups')
-      if (response.ok) {
-        const data = await response.json()
-        setMeetups(data.meetups || [])
+export default function MeetupsPage(){
+  const [meetups,setMeetups]=useState<Meetup[]>([])
+  const [filter,setFilter]=useState('all')
+  const [loading,setLoading]=useState(true)
+  const [error,setError]=useState<string | null>(null)
+  const [saving,setSaving]=useState<string | null>(null)
+
+  const loadMeetups=async () => {
+    setError(null)
+    try{
+      const response=await fetch('/api/meetups',{credentials:'include'})
+      if(response.status === 401){
+        window.location.href='/login'
+        return
       }
-    } catch (error) {
-      console.error('Error loading meetups:', error)
-    } finally {
+      const data=await response.json()
+      if(!response.ok) throw new Error(data.error || 'Failed to load meetups')
+      setMeetups(data.meetups || [])
+    }catch(error){
+      setError(error instanceof Error ? error.message : 'Failed to load meetups')
+    }finally{
       setLoading(false)
     }
   }
 
-  const attendMeetup = async (meetupId: string, status: 'going' | 'maybe' | 'not_going') => {
-    try {
-      const response = await fetch(`/api/meetups/${meetupId}/attend`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status }),
+  useEffect(() => { void loadMeetups() },[])
+
+  const setRsvp=async (meetupId:string,status:MeetupAttendee['status']) => {
+    setSaving(meetupId)
+    setError(null)
+    try{
+      const response=await fetch(`/api/meetups/${meetupId}/attend`,{
+        method:'POST',
+        credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({status}),
       })
-      if (response.ok) {
-        alert(`Successfully marked as ${status}!`)
-        loadMeetups() // Refresh the list
-      } else {
-        alert('Failed to update attendance')
-      }
-    } catch (error) {
-      console.error('Error updating attendance:', error)
-      alert('Failed to update attendance')
+      const data=await response.json().catch(() => ({}))
+      if(!response.ok) throw new Error(data.error || 'Failed to update RSVP')
+      setMeetups(current => current.map(meetup => meetup.id === meetupId ? {
+        ...meetup,
+        userRsvp:status,
+        currentAttendees:data.currentAttendees ?? meetup.currentAttendees,
+      } : meetup))
+    }catch(error){
+      setError(error instanceof Error ? error.message : 'Failed to update RSVP')
+    }finally{
+      setSaving(null)
     }
   }
 
-  const getActivityTypeColor = (activityType: string) => {
-    switch (activityType) {
-      case 'watch_party': return 'bg-orange-100 text-orange-800'
-      case 'outdoor': return 'bg-green-100 text-green-800'
-      case 'sports': return 'bg-blue-100 text-blue-800'
-      case 'coffee': return 'bg-yellow-100 text-yellow-800'
-      case 'playdate': return 'bg-pink-100 text-pink-800'
-      case 'other': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
+  const filtered=useMemo(
+    () => filter === 'all' ? meetups : meetups.filter(meetup => meetup.activityType === filter),
+    [filter,meetups],
+  )
 
-  const getActivityTypeIcon = (activityType: string) => {
-    switch (activityType) {
-      case 'watch_party': return '📺'
-      case 'outdoor': return '🌲'
-      case 'sports': return '⚽'
-      case 'coffee': return '☕'
-      case 'playdate': return '👶'
-      case 'other': return '🎯'
-      default: return '🎯'
-    }
-  }
-
-  const filteredMeetups = filter === 'all' 
-    ? meetups 
-    : meetups.filter(meetup => meetup.activityType === filter)
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading meetups...</p>
-        </div>
-      </div>
-    )
-  }
+  if(loading) return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">Loading meetups…</div>
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dad Meetups</h1>
-            <p className="text-gray-600 mt-2">Join activities, watch parties, and hangouts with fellow dads</p>
-          </div>
-          <Link
-            href="/meetups/create"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Create Meetup
-          </Link>
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div><h1 className="text-3xl font-bold text-gray-900">Dad meetups</h1><p className="mt-2 text-gray-600">Turn an online connection into something real.</p></div>
+          <Link href="/meetups/create" className="rounded-lg bg-blue-600 px-6 py-3 text-center font-semibold text-white hover:bg-blue-700">Create meetup</Link>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex space-x-1 mb-8 bg-white p-1 rounded-lg shadow-sm">
-          {[
-            { key: 'all', label: 'All Meetups' },
-            { key: 'watch_party', label: 'Watch Parties' },
-            { key: 'outdoor', label: 'Outdoor' },
-            { key: 'sports', label: 'Sports' },
-            { key: 'coffee', label: 'Coffee' },
-            { key: 'playdate', label: 'Playdates' },
-            { key: 'other', label: 'Other' },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                filter === tab.key
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="mb-8 flex gap-1 overflow-x-auto rounded-lg bg-white p-1 shadow-sm">
+          {filters.map(([key,label]) => <button key={key} onClick={() => setFilter(key)}
+            className={`whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium ${filter === key ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>{label}</button>)}
         </div>
 
-        {/* Meetups Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMeetups.map((meetup) => (
-            <div key={meetup.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{meetup.title}</h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActivityTypeColor(meetup.activityType)}`}>
-                      {getActivityTypeIcon(meetup.activityType)} {meetup.activityType.replace('_', ' ').toUpperCase()}
-                    </span>
-                    {meetup.city && (
-                      <span className="text-sm text-gray-500">📍 {meetup.city}, {meetup.state}</span>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-green-600">{meetup.currentAttendees}</div>
-                  <div className="text-xs text-gray-500">
-                    {meetup.maxAttendees ? `/${meetup.maxAttendees}` : ''} dads
-                  </div>
-                </div>
-              </div>
+        {error && <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
-              <p className="text-gray-600 mb-4 line-clamp-3">{meetup.description}</p>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  {meetup.location}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filtered.map(meetup => {
+            const full=meetup.maxAttendees !== null && meetup.maxAttendees !== undefined && meetup.currentAttendees >= meetup.maxAttendees
+            return (
+              <article key={meetup.id} className="rounded-xl bg-white p-6 shadow-lg">
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <div><span className="text-xs font-semibold uppercase tracking-wide text-blue-600">{labels[meetup.activityType]}</span><h2 className="mt-1 text-xl font-semibold text-gray-900">{meetup.title}</h2></div>
+                  <div className="text-right"><strong className="block text-2xl text-emerald-600">{meetup.currentAttendees}</strong><span className="text-xs text-gray-500">{meetup.maxAttendees ? `of ${meetup.maxAttendees} going` : 'going'}</span></div>
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {new Date(meetup.startTime).toLocaleDateString()} at {new Date(meetup.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <p className="mb-4 line-clamp-3 text-gray-600">{meetup.description || 'No description yet.'}</p>
+                <div className="mb-5 space-y-1 text-sm text-gray-600">
+                  <p>🗓 {new Date(meetup.startTime).toLocaleString()}</p>
+                  {(meetup.location || meetup.city) && <p>📍 {[meetup.location,meetup.city,meetup.state].filter(Boolean).join(' · ')}</p>}
+                  {meetup.creator && <p>Hosted by {meetup.creator.name}</p>}
                 </div>
-                {meetup.creator && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    Organized by {meetup.creator.name}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => attendMeetup(meetup.id, 'going')}
-                  className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                >
-                  Going
-                </button>
-                <button
-                  onClick={() => attendMeetup(meetup.id, 'maybe')}
-                  className="flex-1 bg-yellow-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-yellow-700 transition-colors"
-                >
-                  Maybe
-                </button>
-                <button
-                  onClick={() => attendMeetup(meetup.id, 'not_going')}
-                  className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors"
-                >
-                  Can't Go
-                </button>
-              </div>
-            </div>
-          ))}
+                <div className="mb-3 grid grid-cols-3 gap-2">
+                  {([
+                    ['going','Going'],['maybe','Maybe'],['not_going',"Can't go"],
+                  ] as [MeetupAttendee['status'],string][]).map(([status,label]) => (
+                    <button key={status} onClick={() => setRsvp(meetup.id,status)}
+                      disabled={saving === meetup.id || (status === 'going' && full && meetup.userRsvp !== 'going')}
+                      className={`rounded-lg border px-2 py-2 text-sm font-medium disabled:opacity-40 ${meetup.userRsvp === status ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 bg-white text-gray-700'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {full && meetup.userRsvp !== 'going' && <p className="mb-3 text-xs text-amber-700">This meetup is currently full.</p>}
+                <Link href={`/meetups/${meetup.id}`} className="block rounded-lg bg-gray-900 px-4 py-2 text-center font-medium text-white">View details</Link>
+              </article>
+            )
+          })}
         </div>
 
-        {filteredMeetups.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No meetups found</h3>
-            <p className="text-gray-600 mb-4">
-              {filter === 'all' 
-                ? "There are no meetups scheduled yet." 
-                : `No ${filter.replace('_', ' ')} meetups found.`}
-            </p>
-            <Link
-              href="/meetups/create"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Create the First Meetup
-            </Link>
-          </div>
-        )}
+        {!filtered.length && <div className="py-16 text-center"><h2 className="text-lg font-semibold">No meetups yet</h2><p className="mt-2 text-gray-600">Create one around an activity, group, or neighborhood.</p></div>}
       </div>
-    </div>
+    </main>
   )
 }

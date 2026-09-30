@@ -63,6 +63,7 @@ export interface Meetup {
   createdAt: string
   creator?: Profile
   attendees?: MeetupAttendee[]
+  userRsvp?: MeetupAttendee["status"] | null
 }
 
 export interface MeetupAttendee {

@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- complete web meetup flow with authenticated create, list, and detail screens
+- Going / Maybe / Can't Go RSVP state surfaced per signed-in user
+- capacity checks before accepting new Going RSVPs
+- attendee lists on meetup detail pages
 - member-aware group discovery using the same RLS rules as the database
 - missing web group chat route with initial history, posting, and Supabase Realtime refresh
 - joined/private state in shared group models and group cards
@@ -20,6 +24,9 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- meetup list now uses the database-maintained attendee count instead of a hard-coded demo value
+- meetup creation validates activity type, dates, and capacity and compensates if creator RSVP creation fails
+- RSVP writes now use one conflict-safe upsert path
 - groups API no longer hard-codes public visibility; RLS now decides which public/private groups a caller can see
 - shared membership/message/meetup unions now match database constraints
 - browser Supabase environment access now uses statically inlined NEXT_PUBLIC variables
