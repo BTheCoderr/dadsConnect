@@ -42,7 +42,7 @@ DadConnect centers useful community interactions:
 - profiles with interests and family-stage context
 - community-aware feed combining first-party/content-source reading with live discussions, meetups, and group discovery
 - account-backed saved library with persistent read/unread state, source links, sharing, and deletion
-- web and mobile clients backed by one authorization model
+- web and mobile clients backed by one authorization model, with mobile auth, groups, meetups, chat, and profile wired to the live backend
 
 ## Architecture
 
@@ -137,6 +137,7 @@ npm run dev:mobile
 npm run build:web
 npm run build
 npm run typecheck
+npm run typecheck:mobile
 ```
 
 ---

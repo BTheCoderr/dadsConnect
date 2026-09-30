@@ -1,159 +1,84 @@
-import { DadGroup, GroupMessage } from '@dadconnect/shared'
+import type { DadGroup, GroupMessage, Meetup, MeetupAttendee } from '@dadconnect/shared'
+import { supabase } from './supabase'
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
+
+if (!API_BASE_URL) {
+  throw new Error('Missing EXPO_PUBLIC_API_URL')
+}
+
+async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const headers = new Headers(options.headers)
+  headers.set('Content-Type', 'application/json')
+  if (session?.access_token) headers.set('Authorization', `Bearer ${session.access_token}`)
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  })
+
+  const body = response.status === 204 ? null : await response.json().catch(() => null)
+  if (!response.ok) {
+    const message = body && typeof body === 'object' && 'error' in body ? String(body.error) : `Request failed (${response.status})`
+    throw new Error(message)
+  }
+  return body as T
+}
 
 export class ChatAPI {
-  private static async request(endpoint: string, options: RequestInit = {}) {
-    const url = `${API_BASE_URL}${endpoint}`
-    
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    })
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`)
-    }
-
-    return response.json()
-  }
-
-  // Get all groups
   static async getGroups(): Promise<DadGroup[]> {
-    try {
-      const response = await this.request('/api/groups')
-      return response.groups || []
-    } catch (error) {
-      console.error('Error fetching groups:', error)
-      // Return mock data as fallback
-      return this.getMockGroups()
-    }
+    const response = await request<{ groups: DadGroup[] }>('/api/groups')
+    return response.groups || []
   }
 
-  // Get messages for a specific group
+  static async joinGroup(groupId: string): Promise<void> {
+    await request(`/api/groups/${groupId}/join`, { method: 'POST' })
+  }
+
   static async getMessages(groupId: string): Promise<GroupMessage[]> {
-    try {
-      const response = await this.request(`/api/groups/${groupId}/messages`)
-      return response.messages || []
-    } catch (error) {
-      console.error('Error fetching messages:', error)
-      // Return mock data as fallback
-      return this.getMockMessages(groupId)
-    }
+    const response = await request<{ messages: GroupMessage[] }>(`/api/groups/${groupId}/messages`)
+    return response.messages || []
   }
 
-  // Send a message to a group
-  static async sendMessage(groupId: string, content: string, messageType: string = 'text'): Promise<GroupMessage> {
-    try {
-      const response = await this.request(`/api/groups/${groupId}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({
-          content,
-          messageType,
-        }),
-      })
-      return response.message
-    } catch (error) {
-      console.error('Error sending message:', error)
-      // Return mock message as fallback
-      return this.createMockMessage(groupId, content)
-    }
+  static async sendMessage(groupId: string, content: string): Promise<GroupMessage> {
+    const response = await request<{ message: GroupMessage }>(`/api/groups/${groupId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content, messageType: 'text' }),
+    })
+    return response.message
   }
 
-  // Join a group
-  static async joinGroup(groupId: string): Promise<boolean> {
-    try {
-      await this.request(`/api/groups/${groupId}/join`, {
-        method: 'POST',
-      })
-      return true
-    } catch (error) {
-      console.error('Error joining group:', error)
-      return false
-    }
+  static async getMeetups(): Promise<Meetup[]> {
+    const response = await request<{ meetups: Meetup[] }>('/api/meetups')
+    return response.meetups || []
   }
 
-  // Mock data fallbacks
-  private static getMockGroups(): DadGroup[] {
-    return [
-      {
-        id: '1',
-        name: 'Austin Dads Support',
-        description: 'Support group for dads in Austin area',
-        category: 'support',
-        topics: ['parenting', 'support', 'local'],
-        city: 'Austin',
-        state: 'TX',
-        visibility: 'public',
-        memberCount: 24,
-        createdBy: 'user1',
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        name: 'Football Dads',
-        description: 'Dads who love football and watching games together',
-        category: 'sports',
-        topics: ['football', 'sports', 'watch parties'],
-        visibility: 'public',
-        memberCount: 18,
-        createdBy: 'user2',
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: '3',
-        name: 'New Dad Network',
-        description: 'Support for new dads navigating fatherhood',
-        category: 'support',
-        topics: ['new dad', 'support', 'advice'],
-        visibility: 'public',
-        memberCount: 32,
-        createdBy: 'user3',
-        createdAt: new Date().toISOString(),
-      }
-    ]
+  static async rsvp(meetupId: string, status: MeetupAttendee['status']): Promise<{ currentAttendees: number }> {
+    return request<{ currentAttendees: number }>(`/api/meetups/${meetupId}/attend`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    })
   }
 
-  private static getMockMessages(groupId: string): GroupMessage[] {
-    return [
-      {
-        id: '1',
-        groupId,
-        authorId: 'user1',
-        content: 'Hey dads! Anyone up for watching the game this Sunday?',
-        messageType: 'text',
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: '2',
-        groupId,
-        authorId: 'user2',
-        content: 'I\'m in! What time?',
-        messageType: 'text',
-        createdAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: '3',
-        groupId,
-        authorId: 'user3',
-        content: 'Count me in too! I can bring some snacks.',
-        messageType: 'text',
-        createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-      }
-    ]
-  }
-
-  private static createMockMessage(groupId: string, content: string): GroupMessage {
-    return {
-      id: Date.now().toString(),
-      groupId,
-      authorId: 'current_user',
-      content,
-      messageType: 'text',
-      createdAt: new Date().toISOString(),
-    }
+  static async getMe() {
+    return request<{
+      ok: boolean
+      profile: {
+        id: string
+        name: string
+        avatarUrl: string | null
+        bio: string | null
+        interests: string[]
+        createdAt: string
+      } | null
+      privateProfile: {
+        kidsAges: string[]
+        city: string | null
+        state: string | null
+        cityOptIn: boolean
+      } | null
+      stats: { groups: number; meetups: number; discussions: number }
+    }>('/api/me')
   }
 }

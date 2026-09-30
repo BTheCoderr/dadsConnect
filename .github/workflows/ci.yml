@@ -30,5 +30,7 @@ jobs:
         run: npm ci
       - name: Typecheck shared package
         run: npm run typecheck
+      - name: Typecheck mobile app
+        run: npm run typecheck:mobile
       - name: Build web app
         run: npm run build:web

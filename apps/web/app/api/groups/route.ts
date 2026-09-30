@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
       city: group.city,
       state: group.state,
       visibility: group.visibility,
-      memberCount: 1,
+      memberCount: group.member_count,
       createdBy: group.created_by,
       createdAt: group.created_at,
       isMember: memberGroupIds.has(group.id),

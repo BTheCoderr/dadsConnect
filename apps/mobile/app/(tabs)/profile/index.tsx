@@ -1,272 +1,78 @@
-import React, { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View,Text,StyleSheet,ScrollView,TouchableOpacity,Alert,RefreshControl } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Profile } from '@dadconnect/shared'
+import { ChatAPI } from '../../../lib/chat-api'
+import { supabase } from '../../../lib/supabase'
 
-export default function ProfileScreen() {
-  const router = useRouter()
-  const [profile, setProfile] = useState<Profile>({
-    id: 'current_user',
-    name: 'John Dad',
-    avatarUrl: null,
-    city: 'Austin',
-    state: 'TX',
-    bio: 'Dad of two amazing kids. Love football, outdoor activities, and connecting with other dads.',
-    interests: ['football', 'outdoor activities', 'tech', 'cooking'],
-    kidsAges: ['5-8', '9-12'],
-    createdAt: new Date().toISOString(),
-  })
+type Me=Awaited<ReturnType<typeof ChatAPI.getMe>>
 
-  const handleEditProfile = () => {
-    router.push('/profile/edit')
+export default function ProfileScreen(){
+  const router=useRouter()
+  const [me,setMe]=useState<Me | null>(null)
+  const [loading,setLoading]=useState(true)
+
+  const load=async () => {
+    try{
+      setMe(await ChatAPI.getMe())
+    }catch(error){
+      Alert.alert('Could not load profile',error instanceof Error ? error.message : 'Try again.')
+    }finally{
+      setLoading(false)
+    }
   }
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => {
-          // TODO: Implement logout
-          console.log('Logout')
-        }}
-      ]
-    )
+  useEffect(() => { void load() },[])
+
+  const logout=() => {
+    Alert.alert('Sign out','Sign out of DadConnect?',[
+      {text:'Cancel',style:'cancel'},
+      {text:'Sign out',style:'destructive',onPress:async () => {
+        await supabase.auth.signOut()
+        router.replace('/sign-in')
+      }},
+    ])
   }
 
-  const renderInterestTag = (interest: string) => (
-    <View key={interest} style={styles.interestTag}>
-      <Text style={styles.interestText}>{interest}</Text>
-    </View>
-  )
+  const profile=me?.profile
+  const privateProfile=me?.privateProfile
+  if(!profile && loading) return <View style={styles.center}><Text>Loading profile…</Text></View>
+  if(!profile) return <View style={styles.center}><Text>Sign in to view your DadConnect profile.</Text></View>
 
-  const renderKidAgeTag = (age: string) => (
-    <View key={age} style={styles.kidAgeTag}>
-      <Text style={styles.kidAgeText}>{age} years old</Text>
-    </View>
-  )
+  const initials=profile.name.split(' ').map(part => part[0]).join('').slice(0,2).toUpperCase()
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}>
       <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {profile.name.split(' ').map(n => n[0]).join('')}
-            </Text>
-          </View>
-        </View>
-        
-        <View style={styles.profileInfo}>
-          <Text style={styles.name}>{profile.name}</Text>
-          <Text style={styles.location}>📍 {profile.city}, {profile.state}</Text>
-          {profile.bio && (
-            <Text style={styles.bio}>{profile.bio}</Text>
-          )}
-        </View>
-
-        <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-          <Text style={styles.editButtonText}>Edit Profile</Text>
-        </TouchableOpacity>
+        <View style={styles.avatar}><Text style={styles.avatarText}>{initials || 'DC'}</Text></View>
+        <Text style={styles.name}>{profile.name}</Text>
+        <Text style={styles.bio}>{profile.bio || 'DadConnect member'}</Text>
       </View>
+
+      <View style={styles.stats}>
+        {([['Groups',me?.stats.groups || 0],['Meetups',me?.stats.meetups || 0],['Discussions',me?.stats.discussions || 0]] as [string,number][]).map(([label,value]) => (
+          <View key={label} style={styles.stat}><Text style={styles.statNumber}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>
+        ))}
+      </View>
+
+      <View style={styles.section}><Text style={styles.sectionTitle}>Interests</Text><View style={styles.tags}>{profile.interests.length ? profile.interests.map(item => <Text key={item} style={styles.tag}>{item}</Text>) : <Text style={styles.muted}>No interests yet.</Text>}</View></View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>My Kids</Text>
-        <View style={styles.tagsContainer}>
-          {profile.kidsAges.map(renderKidAgeTag)}
-        </View>
+        <Text style={styles.sectionTitle}>Private preferences</Text>
+        <Text style={styles.muted}>Family stage: {privateProfile?.kidsAges.length ? privateProfile.kidsAges.join(', ') : 'Not added'}</Text>
+        <Text style={styles.muted}>Location: {privateProfile?.city ? `${privateProfile.city}${privateProfile.state ? `, ${privateProfile.state}` : ''}` : 'Not added'}</Text>
+        <Text style={styles.note}>These stay in your self-only profile record.</Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Interests</Text>
-        <View style={styles.tagsContainer}>
-          {profile.interests.map(renderInterestTag)}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>My Groups</Text>
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>3</Text>
-            <Text style={styles.statLabel}>Groups Joined</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Meetups Attended</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>45</Text>
-            <Text style={styles.statLabel}>Messages Sent</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => router.push('/groups/create')}
-          >
-            <Text style={styles.actionButtonText}>Create Group</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => router.push('/meetups/create')}
-          >
-            <Text style={styles.actionButtonText}>Create Meetup</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
+      <View style={styles.section}><TouchableOpacity style={styles.logout} onPress={logout}><Text style={styles.logoutText}>Sign out</Text></TouchableOpacity></View>
     </ScrollView>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: 'white',
-    padding: 20,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  avatarContainer: {
-    marginBottom: 16,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  profileInfo: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  location: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 8,
-  },
-  bio: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  editButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  editButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  section: {
-    backgroundColor: 'white',
-    marginTop: 12,
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 16,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  interestTag: {
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  interestText: {
-    fontSize: 14,
-    color: '#1976D2',
-  },
-  kidAgeTag: {
-    backgroundColor: '#E8F5E8',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  kidAgeText: {
-    fontSize: 14,
-    color: '#4CAF50',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  actionsContainer: {
-    gap: 12,
-  },
-  actionButton: {
-    backgroundColor: '#F0F0F0',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
-  },
-  logoutButton: {
-    backgroundColor: '#FF4444',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: '600',
-  },
+const styles=StyleSheet.create({
+  container:{flex:1,backgroundColor:'#f5f5f5'},center:{flex:1,alignItems:'center',justifyContent:'center',padding:24},header:{backgroundColor:'white',alignItems:'center',padding:24},
+  avatar:{width:82,height:82,borderRadius:41,backgroundColor:'#1473e6',alignItems:'center',justifyContent:'center'},avatarText:{color:'white',fontSize:26,fontWeight:'700'},
+  name:{fontSize:24,fontWeight:'700',marginTop:12,color:'#222'},bio:{textAlign:'center',color:'#666',marginTop:6,lineHeight:20},stats:{flexDirection:'row',backgroundColor:'white',marginTop:10,padding:18,justifyContent:'space-around'},
+  stat:{alignItems:'center'},statNumber:{fontSize:22,fontWeight:'700',color:'#1473e6'},statLabel:{fontSize:11,color:'#777',marginTop:3},section:{backgroundColor:'white',padding:18,marginTop:10},
+  sectionTitle:{fontSize:17,fontWeight:'700',marginBottom:12,color:'#222'},tags:{flexDirection:'row',flexWrap:'wrap',gap:7},tag:{backgroundColor:'#eaf3ff',color:'#1769aa',paddingHorizontal:9,paddingVertical:5,borderRadius:14,fontSize:12},
+  muted:{color:'#666',marginBottom:5},note:{fontSize:11,color:'#888',marginTop:8},logout:{backgroundColor:'#d93838',padding:12,borderRadius:9,alignItems:'center'},logoutText:{color:'white',fontWeight:'700'}
 })

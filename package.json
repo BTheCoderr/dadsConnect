@@ -12,7 +12,8 @@
     "dev:web": "npm run -w @dadsconnect/web dev",
     "dev:mobile": "npm run -w @dadsconnect/mobile start",
     "typecheck": "tsc -b packages/shared",
-    "install:all": "npm install"
+    "install:all": "npm install",
+    "typecheck:mobile": "npm run -w @dadsconnect/mobile typecheck"
   },
   "dependencies": {
     "typescript": "~5.3.3"

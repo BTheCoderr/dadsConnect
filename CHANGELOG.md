@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- mobile email/password sign-in and sign-up backed by Supabase Auth
+- live mobile Groups, Meetups, Realtime group chat, and account profile screens
+- mobile TypeScript gate in GitHub Actions CI
 - persistent library read/unread updates through owner-scoped save records
 - real saved-content deletion, source opening, Web Share, and clipboard fallback
 - save timestamps and content URLs in library responses for correct sorting and actions
@@ -43,6 +46,10 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- mobile API requests now attach the current Supabase access token instead of using mock fallbacks
+- groups API now returns the database-maintained member count instead of a hard-coded value
+- /api/me now returns owner-only private profile data and live account activity counts for the signed-in user
+- mobile root routing now sends signed-out users to sign-in and signed-in users to real tabs
 - login and onboarding now read/write the self-only profile_private table directly
 - generated database types refreshed after the profile privacy migration
 - shared ContentItem model and ranker now match the live Supabase content table
@@ -65,6 +72,7 @@
 - rewrote repository/setup documentation around the active rebuild
 
 ### Removed
+- Austin mock groups and meetups, fake mobile chat messages, John Dad profile data, and fake mobile profile stats
 - library demo sorting by UUID, alert-only sharing, local-only read toggles, and fake delete behavior
 - hard-coded feed activity counts, fake suggested groups, fake trending topics, and lorem-ipsum article content
 - console-only/local-only feed save behavior
