@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
+
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import type { DadGroup } from '@dadconnect/shared'
 import { ChatAPI } from '../../../lib/chat-api'
 
@@ -20,7 +21,11 @@ export default function GroupsScreen() {
     }
   }
 
-  useEffect(() => { void loadGroups() }, [])
+  useFocusEffect(
+    React.useCallback(() => {
+      void loadGroups()
+    }, []),
+  )
 
   const joinGroup = async (groupId: string) => {
     setJoining(groupId)
@@ -59,7 +64,15 @@ export default function GroupsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}><Text style={styles.title}>Dad Groups</Text><Text style={styles.subtitle}>Real communities from your DadConnect account</Text></View>
+      <View style={styles.header}>
+        <View style={styles.headerCopy}>
+          <Text style={styles.title}>Dad Groups</Text>
+          <Text style={styles.subtitle}>Real communities from your DadConnect account</Text>
+        </View>
+        <TouchableOpacity style={styles.createButton} onPress={() => router.push('/(tabs)/groups/create')}>
+          <Text style={styles.createButtonText}>+ Create</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={groups}
         renderItem={renderGroup}
@@ -73,7 +86,7 @@ export default function GroupsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:{flex:1,backgroundColor:'#f5f5f5'},header:{padding:18,backgroundColor:'white',borderBottomWidth:1,borderBottomColor:'#e5e5e5'},
+  container:{flex:1,backgroundColor:'#f5f5f5'},header:{padding:18,backgroundColor:'white',borderBottomWidth:1,borderBottomColor:'#e5e5e5',flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},headerCopy:{flex:1},createButton:{backgroundColor:'#1473e6',paddingHorizontal:13,paddingVertical:9,borderRadius:9},createButtonText:{color:'white',fontWeight:'800',fontSize:12},
   title:{fontSize:26,fontWeight:'700',color:'#222'},subtitle:{marginTop:4,color:'#666'},list:{padding:16,gap:12},card:{backgroundColor:'white',padding:16,borderRadius:14},
   row:{flexDirection:'row',gap:12},grow:{flex:1},name:{fontSize:18,fontWeight:'700',color:'#222'},meta:{fontSize:12,color:'#667085',marginTop:4},
   count:{alignItems:'center'},countNumber:{fontSize:20,fontWeight:'700',color:'#1473e6'},countLabel:{fontSize:10,color:'#777'},
