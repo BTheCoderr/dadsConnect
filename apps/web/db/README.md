@@ -30,3 +30,10 @@ The migration intentionally does not contain seed users or service-role credenti
 ## Hardening migration
 
 The second migration moves RLS/trigger helper functions out of the exposed `public` API schema into a dedicated `private` schema, removes client execution from trigger-only functions, optimizes `auth.uid()` evaluation inside policies, and adds covering indexes for every foreign-key path flagged by the Supabase advisor.
+
+
+## Profile privacy split
+
+Family-stage age ranges and optional location preferences now live in `profile_private`, which is readable/writable only by the signed-in owner. The broadly readable `profiles` row is limited to community-facing identity fields.
+
+A temporary compatibility trigger captures writes from older profile code into the private table and immediately scrubs the legacy public columns. This allows the app code to migrate safely before those legacy columns are removed in a later migration.

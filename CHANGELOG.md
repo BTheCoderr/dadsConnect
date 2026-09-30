@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- self-only profile_private table for kids' age ranges and optional location preferences
+- compatibility trigger that redirects legacy profile privacy-field writes into the private table
 - community-aware feed sections backed by live discussions, meetups, groups, and saved-item count
 - interest/topic-aware content ranking using the current content schema
 - idempotent real save writes from feed content
@@ -65,6 +67,8 @@
 - unused server helper that expected a service-role key and direct Postgres URL
 
 ### Security
+- moved family-stage and location preference data out of the community-readable profile surface
+- revoked direct authenticated profile inserts; Auth provisioning remains the canonical profile creation path
 - moved SECURITY DEFINER RLS helpers into a non-exposed private schema
 - revoked client execution from internal trigger functions
 - optimized auth identity checks in RLS policies using statement-level init plans
