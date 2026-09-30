@@ -90,15 +90,25 @@ npm run dev:web
 
 See [setup.md](setup.md) for environment details.
 
-## Rebuild plan
+## Rebuild status
 
-1. isolate DadConnect in its own Supabase project
-2. remove stale privileged connection examples
-3. repair server/mobile session handling
-4. redesign the Postgres schema and RLS policies
-5. add migrations, generated types, tests, and CI
-6. validate web/mobile flows against the live project
-7. keep generated database types synchronized with applied migrations
+Completed foundation:
+
+- dedicated DadConnect Supabase project
+- stale privileged connection examples removed
+- production-style Postgres schema + RLS policies
+- migration-backed schema history
+- generated TypeScript database types
+- authenticated web group discovery and membership
+- member-only Realtime group chat
+- longer-form discussions
+- meetup creation + group-linked planning
+- capacity-aware Going / Maybe / Can't Go RSVPs
+- community-aware feed
+- public/private profile separation
+- saved library with persistent read state
+
+Current emphasis is **cross-surface parity and polish**: keeping the web and mobile clients aligned on the same authenticated community model rather than creating separate product logic.
 
 ## Authentication flow
 
