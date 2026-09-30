@@ -1,5 +1,33 @@
 # DadConnect
 
+<!-- repo-intro:start -->
+**Project snapshot:** DadConnect is a web + mobile community platform for fathers built around groups, conversations, real-world meetups, RSVP coordination, profiles, saved content, and a community-aware feed.
+
+**What it demonstrates:** Next.js · Expo/React Native · TypeScript workspaces · Supabase Auth/Postgres/RLS/Realtime · shared authorization across web and mobile.
+<!-- repo-intro:end -->
+
+<!-- portfolio-refresh:start -->
+<p align="center">
+  <img src="./apps/web/public/dad-and-child-work.png" alt="DadConnect community visual" width="720" />
+</p>
+
+## Product at a glance
+
+| Area | Current build |
+| --- | --- |
+| Surfaces | Next.js web + Expo/React Native mobile |
+| Community | Groups, member chat, longer-form discussions |
+| Meetups | Create events, group-linked planning, Going/Maybe/Can't Go RSVPs, capacity handling |
+| Discovery | Community-aware feed, groups, discussions, meetups |
+| Profiles | Public community profile + separately protected private family/location context |
+| Saved library | Account-backed saved content with read/unread state and source links |
+| Backend | Dedicated Supabase project with RLS + generated TypeScript database types |
+
+### Current rebuild direction
+
+DadConnect is no longer being treated as a static community mockup. The current work is building a real **groups → conversations → meetup → RSVP → feed/profile** loop on one shared authorization model across web and mobile.
+<!-- portfolio-refresh:end -->
+
 **DadConnect is a web + mobile community platform for fathers to find local groups, coordinate meetups, share practical support, and stay connected around parenting and everyday life.**
 
 > Status: active rebuild. DadConnect has its own dedicated Supabase project with the reviewed schema live, RLS enabled on all exposed tables, and a clean Supabase security advisor.
