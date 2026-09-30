@@ -15,5 +15,5 @@ export default function Index() {
   },[])
 
   if(!ready) return <View style={{flex:1,alignItems:"center",justifyContent:"center"}}><Text>Loading DadConnect…</Text></View>
-  return <Redirect href={signedIn ? "/(tabs)/groups" : "/sign-in"} />
+  return <Redirect href={signedIn ? "/(tabs)/feed" : "/sign-in"} />
 }

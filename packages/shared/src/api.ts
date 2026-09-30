@@ -23,7 +23,12 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
     headers,
     credentials: "include",
   })
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    const message = body && typeof body === "object" && "error" in body ? String(body.error) : `${res.status} ${res.statusText}`
+    throw new Error(message)
+  }
+  if (res.status === 204) return undefined as T
   return (await res.json()) as T
 }
 
@@ -31,10 +36,25 @@ export const api = {
   getFeed: (cursor?: string) => http<{ items: ContentItem[]; nextCursor?: string }>(`/api/feed${cursor ? `?cursor=${cursor}` : ""}`),
   save: (body: { contentId: string; note?: string }) => http<{ id: string }>(`/api/save`, { method: "POST", body: JSON.stringify(body) }),
   removeSave: (id: string) => http<void>(`/api/save/${id}`, { method: "DELETE" }),
-  getLibrary: (sort?: string) =>
-    http<{ items: { id: string; source: string; title: string; image: string | null; excerpt: string; read_time: number; read_status: "read" | "unread" }[] }>(
-      `/api/library${sort ? `?sort=${sort}` : ""}`,
-    ),
+  updateSave: (id: string, body: { readStatus?: "read" | "unread"; note?: string | null }) =>
+    http<{ id: string; readStatus: "read" | "unread"; note: string | null; savedAt: string }>(`/api/save/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  getLibrary: () =>
+    http<{ items: {
+      id: string
+      content_id: string
+      source: string
+      url: string
+      title: string
+      image: string | null
+      excerpt: string
+      read_time: number
+      read_status: "read" | "unread"
+      note: string | null
+      saved_at: string
+    }[] }>("/api/library"),
   getMe: () => http<{ ok: boolean; profile: { id: string; name: string | null; avatarUrl: string | null; cityOptIn: boolean; interests: string[]; createdAt: string } | null; flags: Record<string, unknown> }>(
     `/api/me`,
   ),

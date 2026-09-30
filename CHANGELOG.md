@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- live mobile Feed tab with cursor pagination, source opening, and real saved-item writes
+- live mobile Library with persistent read/unread, delete, share, and source opening
 - mobile email/password sign-in and sign-up backed by Supabase Auth
 - live mobile Groups, Meetups, Realtime group chat, and account profile screens
 - mobile TypeScript gate in GitHub Actions CI
@@ -46,6 +48,8 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- signed-in mobile routing now lands on Feed as the product home
+- shared API helper handles 204 responses and exposes typed saved-library update/delete contracts
 - mobile TypeScript configuration now resolves the app-local `@/*` alias used by Expo routes
 - Expo config now imports its public config type from `expo/config`
 - mobile API requests now attach the current Supabase access token instead of using mock fallbacks
@@ -74,6 +78,7 @@
 - rewrote repository/setup documentation around the active rebuild
 
 ### Removed
+- old standalone mobile Feed and Library routes outside the authenticated tab flow
 - obsolete mobile `/groups` and `/pods` routes left over from the pre-tab mock application
 - Austin mock groups and meetups, fake mobile chat messages, John Dad profile data, and fake mobile profile stats
 - library demo sorting by UUID, alert-only sharing, local-only read toggles, and fake delete behavior

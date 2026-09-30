@@ -13,7 +13,7 @@ export default function SignInScreen(){
 
   useEffect(() => {
     supabase.auth.getSession().then(({data}) => {
-      if(data.session) router.replace('/(tabs)/groups')
+      if(data.session) router.replace('/(tabs)/feed')
     })
   },[router])
 
@@ -27,11 +27,11 @@ export default function SignInScreen(){
       if(mode === 'signin'){
         const {error}=await supabase.auth.signInWithPassword({email:email.trim().toLowerCase(),password})
         if(error) throw error
-        router.replace('/(tabs)/groups')
+        router.replace('/(tabs)/feed')
       }else{
         const {data,error}=await supabase.auth.signUp({email:email.trim().toLowerCase(),password,options:{data:{name:name.trim()}}})
         if(error) throw error
-        if(data.session) router.replace('/(tabs)/groups')
+        if(data.session) router.replace('/(tabs)/feed')
         else Alert.alert('Check your email','Confirm your DadConnect account, then return here to sign in.')
       }
     }catch(error){
