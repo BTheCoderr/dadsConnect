@@ -14,6 +14,7 @@ const activities:[Meetup['activityType'],string][]=[
 export default function CreateMeetupPage(){
   const router=useRouter()
   const [groups,setGroups]=useState<DadGroup[]>([])
+  const [selectedGroupId,setSelectedGroupId]=useState('')
   const [saving,setSaving]=useState(false)
   const [error,setError]=useState<string | null>(null)
 
@@ -26,7 +27,12 @@ export default function CreateMeetupPage(){
       }
       if(response.ok){
         const data=await response.json()
-        setGroups((data.groups || []).filter((group:DadGroup) => group.isMember))
+        const joined=(data.groups || []).filter((group:DadGroup) => group.isMember)
+        setGroups(joined)
+        const requestedGroup=new URLSearchParams(window.location.search).get('groupId')
+        if(requestedGroup && joined.some((group:DadGroup) => group.id === requestedGroup)){
+          setSelectedGroupId(requestedGroup)
+        }
       }
     })()
   },[router])
@@ -50,7 +56,7 @@ export default function CreateMeetupPage(){
       startTime:localStart ? new Date(localStart).toISOString() : '',
       endTime:localEnd ? new Date(localEnd).toISOString() : '',
       maxAttendees:String(form.get('maxAttendees') || ''),
-      groupId:String(form.get('groupId') || '') || null,
+      groupId:selectedGroupId || null,
     }
 
     try{
@@ -87,7 +93,7 @@ export default function CreateMeetupPage(){
             <label className="block text-sm font-medium">Description<textarea name="description" rows={4} className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="What should dads know before coming?" /></label>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-medium">Activity<select name="activityType" required className="mt-2 w-full rounded-lg border px-3 py-2">{activities.map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-              <label className="text-sm font-medium">Group<select name="groupId" className="mt-2 w-full rounded-lg border px-3 py-2"><option value="">Standalone meetup</option>{groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
+              <label className="text-sm font-medium">Group<select name="groupId" value={selectedGroupId} onChange={event => setSelectedGroupId(event.target.value)} className="mt-2 w-full rounded-lg border px-3 py-2"><option value="">Standalone meetup</option>{groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-medium">Starts<input name="startTime" type="datetime-local" required className="mt-2 w-full rounded-lg border px-3 py-2" /></label>

@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- group-linked meetup planning from joined group cards and group chat
+- upcoming group meetup cards inside the live chat experience
+- direct meetup-to-group navigation
 - complete web meetup flow with authenticated create, list, and detail screens
 - Going / Maybe / Can't Go RSVP state surfaced per signed-in user
 - capacity checks before accepting new Going RSVPs
@@ -24,6 +27,9 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- meetup API accepts a group filter so group surfaces use the same RLS-protected source of truth
+- meetup create form preselects a requested joined group without relying on Next.js search-param prerender hooks
+- README project status now reflects the live secured schema instead of the earlier empty-database phase
 - meetup list now uses the database-maintained attendee count instead of a hard-coded demo value
 - meetup creation validates activity type, dates, and capacity and compensates if creator RSVP creation fails
 - RSVP writes now use one conflict-safe upsert path

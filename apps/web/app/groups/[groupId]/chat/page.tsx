@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import type { DadGroup, GroupMessage } from "@dadsconnect/shared"
+import type { DadGroup, GroupMessage, Meetup } from "@dadsconnect/shared"
 import { getSupabaseBrowserClient } from "@/lib/supabase-client"
 
 export default function GroupChatPage(){
@@ -12,6 +12,7 @@ export default function GroupChatPage(){
   const groupId=params.groupId
   const [group,setGroup]=useState<DadGroup | null>(null)
   const [messages,setMessages]=useState<GroupMessage[]>([])
+  const [meetups,setMeetups]=useState<Meetup[]>([])
   const [userId,setUserId]=useState<string | null>(null)
   const [draft,setDraft]=useState("")
   const [loading,setLoading]=useState(true)
@@ -79,6 +80,11 @@ export default function GroupChatPage(){
       try{
         const allowed=await loadMessages()
         if(!allowed || !active) return
+        const meetupResponse=await fetch(`/api/meetups?group_id=${groupId}`,{credentials:"include"})
+        if(meetupResponse.ok){
+          const meetupData=await meetupResponse.json()
+          if(active) setMeetups(meetupData.meetups || [])
+        }
         channel=supabase
           .channel(`group-chat-${groupId}`)
           .on("postgres_changes",{event:"INSERT",schema:"public",table:"group_messages",filter:`group_id=eq.${groupId}`},() => {
@@ -134,11 +140,31 @@ export default function GroupChatPage(){
         <Link href="/groups" className="text-sm text-blue-600">← All groups</Link>
         <div className="mt-2 flex items-end justify-between gap-4">
           <div><h1 className="text-2xl font-bold text-gray-900">{group?.name || "Group chat"}</h1><p className="text-sm text-gray-500">{group?.memberCount || 0} members</p></div>
-          <span className="text-xs text-gray-400">Live chat</span>
+          <div className="flex items-center gap-2">
+            <Link href={`/meetups/create?groupId=${groupId}`} className="rounded-lg border border-blue-600 px-3 py-2 text-xs font-semibold text-blue-700">Plan meetup</Link>
+            <span className="text-xs text-gray-400">Live chat</span>
+          </div>
         </div>
       </header>
 
       {error && <div role="alert" className="m-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">{error}</div>}
+
+      <section className="border-b bg-white px-4 py-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">Upcoming group meetups</h2>
+          <Link href={`/meetups/create?groupId=${groupId}`} className="text-sm text-blue-600">+ Plan one</Link>
+        </div>
+        {meetups.length ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {meetups.slice(0,4).map(meetup => (
+              <Link key={meetup.id} href={`/meetups/${meetup.id}`} className="rounded-xl border p-3 hover:bg-gray-50">
+                <strong className="block text-sm text-gray-900">{meetup.title}</strong>
+                <span className="mt-1 block text-xs text-gray-500">{new Date(meetup.startTime).toLocaleString()} · {meetup.currentAttendees} going</span>
+              </Link>
+            ))}
+          </div>
+        ) : <p className="text-sm text-gray-500">Nothing scheduled yet. Turn the chat into a real plan.</p>}
+      </section>
 
       <section className="flex-1 space-y-3 overflow-y-auto px-4 py-5">
         {!messages.length && !error && <div className="py-16 text-center text-gray-500">No messages yet. Start the conversation.</div>}

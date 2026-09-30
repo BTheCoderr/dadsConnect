@@ -54,7 +54,10 @@ export default function MeetupDetailPage(){
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="mx-auto max-w-3xl">
-        <Link href="/meetups" className="text-sm text-blue-600">← All meetups</Link>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <Link href="/meetups" className="text-blue-600">← All meetups</Link>
+          {meetup?.groupId && <Link href={`/groups/${meetup.groupId}/chat`} className="text-blue-600">Open group chat</Link>}
+        </div>
         <article className="mt-4 rounded-xl bg-white p-6 shadow-lg sm:p-8">
           <div className="flex flex-col justify-between gap-4 sm:flex-row">
             <div><span className="text-xs font-semibold uppercase tracking-wide text-blue-600">{meetup.activityType.replace('_',' ')}</span><h1 className="mt-1 text-3xl font-bold">{meetup.title}</h1>{meetup.creator && <p className="mt-2 text-gray-500">Hosted by {meetup.creator.name}</p>}</div>

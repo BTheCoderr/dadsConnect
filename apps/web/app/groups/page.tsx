@@ -113,9 +113,12 @@ export default function GroupsPage() {
               </div>
 
               {group.isMember ? (
-                <div className="flex gap-3">
-                  <span className="flex-1 rounded-lg bg-emerald-50 px-4 py-2 text-center text-sm font-medium text-emerald-700">Joined</span>
-                  <Link href={`/groups/${group.id}/chat`} className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-center font-medium text-white hover:bg-blue-700">Open chat</Link>
+                <div>
+                  <span className="mb-3 block rounded-lg bg-emerald-50 px-4 py-2 text-center text-sm font-medium text-emerald-700">Joined</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link href={`/groups/${group.id}/chat`} className="rounded-lg bg-blue-600 px-4 py-2 text-center font-medium text-white hover:bg-blue-700">Open chat</Link>
+                    <Link href={`/meetups/create?groupId=${group.id}`} className="rounded-lg border border-blue-600 px-4 py-2 text-center font-medium text-blue-700 hover:bg-blue-50">Plan meetup</Link>
+                  </div>
                 </div>
               ) : (
                 <button onClick={() => joinGroup(group.id)} disabled={joining === group.id || group.visibility === 'private'}

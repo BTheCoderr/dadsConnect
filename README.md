@@ -2,7 +2,7 @@
 
 **DadConnect is a web + mobile community platform for fathers to find local groups, coordinate meetups, share practical support, and stay connected around parenting and everyday life.**
 
-> Status: active rebuild. DadConnect now has its own dedicated Supabase project. The database is intentionally empty while the schema and security layer are rebuilt.
+> Status: active rebuild. DadConnect has its own dedicated Supabase project with the reviewed schema live, RLS enabled on all exposed tables, and a clean Supabase security advisor.
 
 ## Product
 
@@ -10,7 +10,7 @@ DadConnect centers useful community interactions:
 
 - local and interest-based dad groups
 - group conversations with member-only Realtime chat
-- authenticated meetup creation, detail pages, capacity-aware Going / Maybe / Can't Go RSVPs, playdates, watch parties, coffee meetups, and outdoor activities
+- authenticated meetup creation, detail pages, capacity-aware Going / Maybe / Can't Go RSVPs, plus group-linked meetups that can be planned directly from a community
 - profiles with interests and family-stage context
 - practical parenting tools
 - web and mobile clients backed by one authorization model

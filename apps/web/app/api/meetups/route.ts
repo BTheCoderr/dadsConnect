@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
     const activityType = searchParams.get('activity_type')
     const city = searchParams.get('city')
     const state = searchParams.get('state')
+    const groupId = searchParams.get('group_id')
     const status = searchParams.get('status') || 'upcoming'
 
     let query = supabase
@@ -38,6 +39,7 @@ export async function GET(req: NextRequest) {
     if (activityType) query = query.eq('activity_type', activityType)
     if (city) query = query.eq('city', city)
     if (state) query = query.eq('state', state)
+    if (groupId) query = query.eq('group_id', groupId)
 
     const { data: meetups, error } = await query
     if (error) {
