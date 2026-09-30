@@ -1,5 +1,11 @@
 # dadsConnect - The Ultimate Community Platform for Fathers
 
+<!-- repo-intro:start -->
+**Project snapshot:** dadsConnect is a community platform concept for fathers, combining local groups, activity coordination, practical parenting tools, chat, and shared web/mobile architecture.
+
+**What it demonstrates:** Next.js · Expo/React Native · Supabase/Postgres · RLS · community-product architecture.
+<!-- repo-intro:end -->
+
 **dadsConnect** is a comprehensive social platform designed specifically for fathers to connect, support each other, and build meaningful relationships within their local communities. Whether you're a new dad looking for support, a sports enthusiast wanting to organize watch parties, or a parent seeking playdate opportunities, dadsConnect brings dads together.
 
 ## 🌟 What Makes dadsConnect Special
