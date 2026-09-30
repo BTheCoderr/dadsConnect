@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,11 +12,15 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-client"
 
 export default function LoginPage() {
   const router=useRouter()
-  const searchParams=useSearchParams()
   const [loading,setLoading]=useState(false)
-  const [error,setError]=useState<string | null>(
-    searchParams.get("error") === "confirmation" ? "We could not confirm that email link. Try signing in or request a new account email." : null
-  )
+  const [error,setError]=useState<string | null>(null)
+
+  useEffect(() => {
+    const params=new URLSearchParams(window.location.search)
+    if(params.get("error") === "confirmation"){
+      setError("We could not confirm that email link. Try signing in or create the account again.")
+    }
+  },[])
 
   const handleSubmit=async (event:React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
