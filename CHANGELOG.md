@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- community-aware feed sections backed by live discussions, meetups, groups, and saved-item count
+- interest/topic-aware content ranking using the current content schema
+- idempotent real save writes from feed content
+- source links in article summaries instead of simulated article bodies
 - live discussions index backed by the RLS-protected threads table
 - authenticated discussion composer limited to joined groups
 - author and group attribution on real discussion records
@@ -31,6 +35,8 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- shared ContentItem model and ranker now match the live Supabase content table
+- feed content API joins real source names and keeps optional profile-interest personalization
 - meetup API accepts a group filter so group surfaces use the same RLS-protected source of truth
 - meetup create form preselects a requested joined group without relying on Next.js search-param prerender hooks
 - README project status now reflects the live secured schema instead of the earlier empty-database phase
@@ -49,6 +55,8 @@
 - rewrote repository/setup documentation around the active rebuild
 
 ### Removed
+- hard-coded feed activity counts, fake suggested groups, fake trending topics, and lorem-ipsum article content
+- console-only/local-only feed save behavior
 - hard-coded demo discussion cards, fake reply counts, and placeholder author identities
 - fake Google/Apple auth controls that were not connected to configured providers
 - placeholder login/signup redirects and hard-coded profile identity

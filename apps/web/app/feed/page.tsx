@@ -1,352 +1,218 @@
 "use client"
 
+import { useEffect,useMemo,useState } from "react"
+import Link from "next/link"
 import { Card } from "@/components/ui/card"
-import { useEffect, useState } from "react"
-import ContentCard from "@/components/content-card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeftIcon, ArrowRightIcon, SearchIcon, BookmarkIcon, TrendingUpIcon, UsersIcon } from "lucide-react"
+import { BookmarkIcon,MessageSquareIcon,UsersIcon,CalendarDaysIcon } from "lucide-react"
+import ContentCard from "@/components/content-card"
 import ArticleModal from "@/components/article-modal"
+import type { ContentItem,Meetup,Thread } from "@dadsconnect/shared"
 
-interface ContentItem {
-  id: string
-  source: string
-  title: string
-  image: string
-  excerpt: string
-  readTime: string
+type FeedCard={
+  id:string
+  source:string
+  title:string
+  image:string
+  excerpt:string
+  readTime:string
+  url:string
+  topics:string[]
 }
 
-export default function FeedPage() {
-  const [feed, setFeed] = useState<ContentItem[]>([])
+type SuggestedGroup={
+  id:string
+  name:string
+  topics:string[]
+  memberCount:number
+  visibility:"public"|"private"
+}
 
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [savedItems, setSavedItems] = useState<ContentItem[]>([])
-  const [isArticleModalOpen, setIsArticleModalOpen] = useState(false)
-  const [selectedArticle, setSelectedArticle] = useState<ContentItem | null>(null)
+export default function FeedPage(){
+  const [content,setContent]=useState<FeedCard[]>([])
+  const [threads,setThreads]=useState<Thread[]>([])
+  const [meetups,setMeetups]=useState<Meetup[]>([])
+  const [groups,setGroups]=useState<SuggestedGroup[]>([])
+  const [currentIndex,setCurrentIndex]=useState(0)
+  const [savedIds,setSavedIds]=useState<Set<string>>(new Set())
+  const [savedCount,setSavedCount]=useState(0)
+  const [selectedArticle,setSelectedArticle]=useState<FeedCard | null>(null)
+  const [error,setError]=useState<string | null>(null)
+  const [loading,setLoading]=useState(true)
 
   useEffect(() => {
-    fetch("/api/feed", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        const normalized = (data.items ?? []).map((i: any) => ({
-          id: i.id,
-          source: i.sourceId ?? "",
-          title: i.title,
-          image: i.image ?? "/placeholder-vk2kx.png",
-          excerpt: i.excerpt ?? "",
-          readTime: `${i.readTime ?? 5} min`,
-        }))
-        setFeed(normalized)
+    ;(async () => {
+      try{
+        const [feedResponse,threadResponse,meetupResponse,groupResponse,libraryResponse]=await Promise.all([
+          fetch("/api/feed",{credentials:"include"}),
+          fetch("/api/threads?limit=4",{credentials:"include"}),
+          fetch("/api/meetups",{credentials:"include"}),
+          fetch("/api/groups/suggested",{credentials:"include"}),
+          fetch("/api/library",{credentials:"include"}),
+        ])
+
+        if(threadResponse.status === 401 || meetupResponse.status === 401){
+          window.location.href="/login"
+          return
+        }
+
+        const [feedData,threadData,meetupData,groupData,libraryData]=await Promise.all([
+          feedResponse.json().catch(() => ({})),
+          threadResponse.json().catch(() => ({})),
+          meetupResponse.json().catch(() => ({})),
+          groupResponse.json().catch(() => ({})),
+          libraryResponse.json().catch(() => ({})),
+        ])
+
+        if(!feedResponse.ok) throw new Error(feedData.error || "Failed to load feed")
+
+        setContent((feedData.items || []).map((item:ContentItem) => ({
+          id:item.id,
+          source:item.source || "DadConnect",
+          title:item.title,
+          image:item.image || "/placeholder-vk2kx.png",
+          excerpt:item.excerpt || "",
+          readTime:`${item.readTime || 5} min`,
+          url:item.url,
+          topics:item.topics || [],
+        })))
+        if(threadResponse.ok) setThreads(threadData.threads || [])
+        if(meetupResponse.ok) setMeetups((meetupData.meetups || []).slice(0,4))
+        if(groupResponse.ok) setGroups((groupData.items || []).slice(0,5))
+        if(libraryResponse.ok) setSavedCount((libraryData.items || []).length)
+      }catch(error){
+        setError(error instanceof Error ? error.message : "Failed to load DadConnect")
+      }finally{
+        setLoading(false)
+      }
+    })()
+  },[])
+
+  const currentCard=content[currentIndex]
+  const topics=useMemo(() => {
+    const counts=new Map<string,number>()
+    content.flatMap(item => item.topics).forEach(topic => counts.set(topic,(counts.get(topic) || 0)+1))
+    return [...counts.entries()].sort((a,b) => b[1]-a[1]).slice(0,6).map(([topic]) => topic)
+  },[content])
+
+  const moveNext=() => {
+    if(!content.length) return
+    setCurrentIndex(index => index >= content.length-1 ? 0 : index+1)
+  }
+
+  const save=async (id:string) => {
+    setError(null)
+    try{
+      const response=await fetch("/api/save",{
+        method:"POST",
+        credentials:"include",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({contentId:id}),
       })
-      .catch(() => {})
-  }, [])
-
-  const currentCard = feed[currentIndex]
-
-  const handleSave = (id: string) => {
-    console.log(`Saved item: ${id}`)
-    const itemToSave = feed.find((item) => item.id === id)
-    if (itemToSave && !savedItems.some((item) => item.id === id)) {
-      setSavedItems((prev) => [...prev, itemToSave])
-    }
-    moveToNextCard()
-  }
-
-  const handleSkip = (id: string) => {
-    console.log(`Skipped item: ${id}`)
-    moveToNextCard()
-  }
-
-  const handleTap = (id: string) => {
-    const article = feed.find((item) => item.id === id)
-    if (article) {
-      setSelectedArticle(article)
-      setIsArticleModalOpen(true)
+      if(response.status === 401){
+        window.location.href="/login"
+        return
+      }
+      const data=await response.json().catch(() => ({}))
+      if(!response.ok) throw new Error(data.error || "Failed to save item")
+      setSavedIds(current => {
+        if(current.has(id)) return current
+        const next=new Set(current)
+        next.add(id)
+        setSavedCount(count => count+1)
+        return next
+      })
+      moveNext()
+    }catch(error){
+      setError(error instanceof Error ? error.message : "Failed to save item")
     }
   }
 
-  const handleCloseArticleModal = () => {
-    setIsArticleModalOpen(false)
-    setSelectedArticle(null)
-  }
-
-  const moveToNextCard = () => {
-    if (currentIndex < feed.length - 1) {
-      setCurrentIndex(currentIndex + 1)
-    } else {
-      alert("You've reached the end of your current feed! More content coming soon.")
-      setCurrentIndex(0)
-    }
-  }
-
-  const trendingTopics = [
-    "Sleep Training",
-    "Toddler Nutrition",
-    "Work-Life Balance",
-    "Outdoor Activities",
-    "Dad Mental Health",
-  ]
-
-  const suggestedGroups = [
-    { name: "New Dads Support", members: 1247, topic: "First-time fathers" },
-    { name: "Single Dads Unite", members: 892, topic: "Single parenting" },
-    { name: "Adventure Dads", members: 2156, topic: "Outdoor activities" },
-  ]
+  if(loading) return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-500">Loading DadConnect…</div>
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">DadConnect</h1>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
-                <SearchIcon className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <BookmarkIcon className="h-5 w-5" />
-              </Button>
-            </div>
+    <main className="min-h-screen bg-gray-50">
+      <header className="sticky top-0 z-10 border-b bg-white">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+          <h1 className="text-2xl font-bold text-gray-900">DadConnect</h1>
+          <div className="flex gap-2">
+            <Button variant="ghost" asChild><Link href="/library"><BookmarkIcon className="mr-2 h-4 w-4" />{savedCount}</Link></Button>
+            <Button variant="outline" asChild><Link href="/profile">Profile</Link></Button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Sidebar - Trending & Quick Actions */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Trending Topics */}
-            <Card className="p-4">
-              <div className="flex items-center mb-3">
-                <TrendingUpIcon className="h-5 w-5 text-orange-500 mr-2" />
-                <h3 className="font-semibold text-gray-900">Trending Topics</h3>
-              </div>
-              <div className="space-y-2">
-                {trendingTopics.map((topic, index) => (
-                  <button
-                    key={index}
-                    className="block w-full text-left text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
-                  >
-                    #{topic}
-                  </button>
-                ))}
-              </div>
-            </Card>
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[260px_minmax(0,1fr)_300px]">
+        <aside className="space-y-5">
+          <Card className="p-4">
+            <div className="mb-3 flex items-center gap-2"><MessageSquareIcon className="h-5 w-5 text-blue-600" /><h2 className="font-semibold">Recent discussions</h2></div>
+            <div className="space-y-3">
+              {threads.length ? threads.map(thread => <Link key={thread.id} href="/discussions" className="block rounded-lg border p-3 hover:bg-gray-50"><strong className="line-clamp-2 text-sm">{thread.title}</strong><span className="mt-1 block text-xs text-gray-500">{thread.group?.name || "Group discussion"}</span></Link>) : <p className="text-sm text-gray-500">No discussions yet.</p>}
+            </div>
+            <Link href="/discussions" className="mt-3 block text-sm font-medium text-blue-600">View discussions →</Link>
+          </Card>
 
-            {/* Quick Stats */}
-            <Card className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Your Activity</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Articles Saved</span>
-                  <span className="text-sm font-medium">{savedItems.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Articles Read</span>
-                  <span className="text-sm font-medium">12</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Groups Joined</span>
-                  <span className="text-sm font-medium">3</span>
-                </div>
-              </div>
-            </Card>
+          <Card className="p-4">
+            <h2 className="font-semibold">Feed topics</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {topics.length ? topics.map(topic => <span key={topic} className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-700">{topic}</span>) : <span className="text-sm text-gray-500">Topics will appear as content is added.</span>}
+            </div>
+          </Card>
+        </aside>
+
+        <section>
+          <div className="mb-6 text-center">
+            <h2 className="text-3xl font-bold text-gray-900">Your feed</h2>
+            <p className="mt-2 text-gray-600">Useful reading plus what is happening in your DadConnect communities.</p>
           </div>
 
-          {/* Main Feed Area */}
-          <div className="lg:col-span-2">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Daily Feed</h2>
-              <p className="text-gray-600">Discover content tailored to your interests</p>
-            </div>
+          {error && <div role="alert" className="mb-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
-            {/* Content Card */}
-            <div className="flex justify-center mb-6">
-              <div className="w-full max-w-sm">
-                {currentCard ? (
-                  <ContentCard
-                    key={currentCard.id}
-                    {...currentCard}
-                    onSave={handleSave}
-                    onSkip={handleSkip}
-                    onTap={handleTap}
-                  />
-                ) : (
-                  <Card className="flex h-[400px] w-full items-center justify-center text-center text-gray-500">
-                    <div>
-                      <p className="text-lg mb-2">No more content in your feed</p>
-                      <p className="text-sm">Check back later for more articles!</p>
-                    </div>
-                  </Card>
-                )}
+          {currentCard ? (
+            <>
+              <div className="mx-auto max-w-sm">
+                <ContentCard {...currentCard} saved={savedIds.has(currentCard.id)} onSave={save} onSkip={() => moveNext()} onTap={() => setSelectedArticle(currentCard)} />
               </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-center gap-4 mb-8">
-              <Button
-                variant="outline"
-                onClick={() => handleSkip(currentCard?.id || "")}
-                disabled={!currentCard}
-                className="bg-white"
-              >
-                <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                Skip
-              </Button>
-              <Button onClick={() => handleSave(currentCard?.id || "")} disabled={!currentCard}>
-                <ArrowRightIcon className="mr-2 h-4 w-4" />
-                Save
-              </Button>
-            </div>
-
-            {/* Progress Indicator */}
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-2">
-                Article {currentIndex + 1} of {feed.length}
-              </p>
-              <div className="w-full bg-gray-200 rounded-full h-2 max-w-xs mx-auto">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentIndex + 1) / feed.length) * 100}%` }}
-                ></div>
+              <div className="mt-4 text-center text-sm text-gray-500">Item {currentIndex+1} of {content.length}</div>
+            </>
+          ) : (
+            <Card className="p-10 text-center">
+              <h3 className="text-lg font-semibold text-gray-900">No reading items yet</h3>
+              <p className="mt-2 text-sm text-gray-600">The content catalog is empty, but the community areas below are live.</p>
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
+                <Button asChild><Link href="/discussions">Discussions</Link></Button>
+                <Button variant="outline" asChild><Link href="/groups">Groups</Link></Button>
+                <Button variant="outline" asChild><Link href="/meetups">Meetups</Link></Button>
               </div>
-            </div>
-          </div>
-
-          {/* Right Sidebar - Groups & Community */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Suggested Groups */}
-            <Card className="p-4">
-              <div className="flex items-center mb-3">
-                <UsersIcon className="h-5 w-5 text-blue-500 mr-2" />
-                <h3 className="font-semibold text-gray-900">Suggested Groups</h3>
-              </div>
-              <div className="space-y-3">
-                {suggestedGroups.map((group, index) => (
-                  <div key={index} className="border-b border-gray-100 pb-3 last:border-b-0">
-                    <h4 className="font-medium text-sm text-gray-900">{group.name}</h4>
-                    <p className="text-xs text-gray-600 mb-2">{group.topic}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">{group.members} members</span>
-                      <Button size="sm" variant="outline" className="text-xs h-6 px-2 bg-transparent">
-                        Join
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button variant="link" className="w-full mt-3 text-sm">
-                View All Groups
-              </Button>
             </Card>
+          )}
 
-            {/* Call to Action */}
-            <Card className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-              <h3 className="font-semibold text-gray-900 mb-2">Join the Community</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                Connect with other dads, share experiences, and get support when you need it most.
-              </p>
-              <Button className="w-full" size="sm">
-                Explore Groups
-              </Button>
-            </Card>
-          </div>
-        </div>
+          <section className="mt-8">
+            <div className="mb-3 flex items-center gap-2"><CalendarDaysIcon className="h-5 w-5 text-emerald-600" /><h2 className="text-lg font-semibold">Upcoming meetups</h2></div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {meetups.length ? meetups.map(meetup => <Link key={meetup.id} href={`/meetups/${meetup.id}`} className="rounded-xl bg-white p-4 shadow-sm hover:bg-gray-50"><strong className="block">{meetup.title}</strong><span className="mt-1 block text-xs text-gray-500">{new Date(meetup.startTime).toLocaleString()} · {meetup.currentAttendees} going</span></Link>) : <p className="text-sm text-gray-500">No upcoming meetups yet.</p>}
+            </div>
+          </section>
+        </section>
+
+        <aside className="space-y-5">
+          <Card className="p-4">
+            <div className="mb-3 flex items-center gap-2"><UsersIcon className="h-5 w-5 text-blue-600" /><h2 className="font-semibold">Suggested groups</h2></div>
+            <div className="space-y-3">
+              {groups.length ? groups.map(group => <div key={group.id} className="rounded-lg border p-3"><strong className="block text-sm">{group.name}</strong><span className="mt-1 block text-xs text-gray-500">{group.memberCount} members · {group.topics.slice(0,2).join(", ") || "community"}</span></div>) : <p className="text-sm text-gray-500">No groups yet.</p>}
+            </div>
+            <Button variant="outline" className="mt-4 w-full" asChild><Link href="/groups">Explore groups</Link></Button>
+          </Card>
+
+          <Card className="p-4">
+            <h2 className="font-semibold">Your activity</h2>
+            <div className="mt-3 flex items-center justify-between text-sm"><span className="text-gray-600">Saved items</span><strong>{savedCount}</strong></div>
+            <p className="mt-3 text-xs text-gray-500">Activity numbers come from your account data, not demo counters.</p>
+          </Card>
+        </aside>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Community</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a href="/groups" className="hover:text-blue-600">
-                    Groups
-                  </a>
-                </li>
-                <li>
-                  <a href="/meetups" className="hover:text-blue-600">
-                    Events
-                  </a>
-                </li>
-                <li>
-                  <a href="/discussions" className="hover:text-blue-600">
-                    Discussions
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Resources</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a href="/library" className="hover:text-blue-600">
-                    Articles
-                  </a>
-                </li>
-                <li>
-                  <a href="/guides" className="hover:text-blue-600">
-                    Guides
-                  </a>
-                </li>
-                <li>
-                  <a href="/tools" className="hover:text-blue-600">
-                    Tools
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Support</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a href="/help" className="hover:text-blue-600">
-                    Help Center
-                  </a>
-                </li>
-                <li>
-                  <a href="/contact" className="hover:text-blue-600">
-                    Contact Us
-                  </a>
-                </li>
-                <li>
-                  <a href="/safety" className="hover:text-blue-600">
-                    Safety
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <a href="/privacy" className="hover:text-blue-600">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="/terms" className="hover:text-blue-600">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="/guidelines" className="hover:text-blue-600">
-                    Community Guidelines
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 mt-8 pt-8 text-center">
-            <p className="text-sm text-gray-500">© 2024 DadConnect. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-
-      <ArticleModal isOpen={isArticleModalOpen} onClose={handleCloseArticleModal} article={selectedArticle} />
-    </div>
+      <ArticleModal isOpen={Boolean(selectedArticle)} onClose={() => setSelectedArticle(null)} article={selectedArticle} />
+    </main>
   )
 }

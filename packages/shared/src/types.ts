@@ -77,10 +77,15 @@ export interface MeetupAttendee {
 // Additional types for API compatibility
 export interface ContentItem {
   id: string
+  sourceId?: string | null
+  source?: string | null
+  url: string
   title: string
-  content: string
-  type: "article" | "video" | "podcast"
-  createdAt: string
+  image?: string | null
+  topics: string[]
+  readTime: number
+  publishedAt: string
+  excerpt?: string | null
 }
 
 export interface Group {
