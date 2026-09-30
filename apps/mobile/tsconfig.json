@@ -12,6 +12,9 @@
     "paths": {
       "@dadconnect/shared": [
         "../../packages/shared/src"
+      ],
+      "@/*": [
+        "./*"
       ]
     }
   },

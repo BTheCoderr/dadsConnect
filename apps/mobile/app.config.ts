@@ -1,4 +1,4 @@
-import { ExpoConfig } from "expo-router/entry"
+import type { ExpoConfig } from "expo/config"
 
 const config: ExpoConfig = {
   name: "DadConnect",
@@ -12,5 +12,3 @@ const config: ExpoConfig = {
 }
 
 export default config
-
-

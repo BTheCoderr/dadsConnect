@@ -46,6 +46,8 @@
 - GitHub Actions build gate for shared TypeScript + Next.js web production build
 
 ### Changed
+- mobile TypeScript configuration now resolves the app-local `@/*` alias used by Expo routes
+- Expo config now imports its public config type from `expo/config`
 - mobile API requests now attach the current Supabase access token instead of using mock fallbacks
 - groups API now returns the database-maintained member count instead of a hard-coded value
 - /api/me now returns owner-only private profile data and live account activity counts for the signed-in user
@@ -72,6 +74,7 @@
 - rewrote repository/setup documentation around the active rebuild
 
 ### Removed
+- obsolete mobile `/groups` and `/pods` routes left over from the pre-tab mock application
 - Austin mock groups and meetups, fake mobile chat messages, John Dad profile data, and fake mobile profile stats
 - library demo sorting by UUID, alert-only sharing, local-only read toggles, and fake delete behavior
 - hard-coded feed activity counts, fake suggested groups, fake trending topics, and lorem-ipsum article content
