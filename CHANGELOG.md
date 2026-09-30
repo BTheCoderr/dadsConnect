@@ -12,6 +12,11 @@
 - corrected API routes that were using an uninitialized or unresolved Supabase server client
 - rewrote repository/setup documentation around the active rebuild
 
+### Removed
+- legacy schema/seed SQL that targeted the retired DadConnect database
+- public seed API route built around fake auth-user IDs
+- unused server helper that expected a service-role key and direct Postgres URL
+
 ### Security
 - removed the stale direct Postgres credential from public environment/setup examples
 - removed service-role configuration from browser/mobile setup guidance
