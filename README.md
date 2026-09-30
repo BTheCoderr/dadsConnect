@@ -71,6 +71,12 @@ See [setup.md](setup.md) for environment details.
 6. validate web/mobile flows against the live project
 7. keep generated database types synchronized with applied migrations
 
+## Authentication flow
+
+Web signup/login now uses Supabase Auth directly. Email confirmations return through `/auth/callback`, new Auth users automatically receive a profile row, and onboarding persists family-stage interests and optional city discovery preferences under RLS.
+
+The UI intentionally exposes only email/password auth until an OAuth provider is actually configured.
+
 ## Security principles
 
 - client applications use a publishable key, never a service-role key

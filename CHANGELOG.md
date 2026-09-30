@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- real Supabase email/password sign-up and sign-in flow
+- email-confirmation callback that exchanges auth codes for cookie-backed sessions
+- persisted onboarding for kids' age ranges, interests, and opt-in city discovery
+- real profile loading/editing/sign-out instead of placeholder user data
 - Supabase-generated TypeScript database types shared by web and mobile clients
 - typed Supabase clients so schema mismatches surface during TypeScript/build CI
 - first migration-backed DadConnect domain schema for profiles, groups, chat, discussions, meetups, content, and saves
@@ -23,6 +27,8 @@
 - rewrote repository/setup documentation around the active rebuild
 
 ### Removed
+- fake Google/Apple auth controls that were not connected to configured providers
+- placeholder login/signup redirects and hard-coded profile identity
 - legacy schema/seed SQL that targeted the retired DadConnect database
 - public seed API route built around fake auth-user IDs
 - unused server helper that expected a service-role key and direct Postgres URL
