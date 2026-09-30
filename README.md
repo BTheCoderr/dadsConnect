@@ -13,6 +13,7 @@ DadConnect centers useful community interactions:
 - authenticated meetup creation, detail pages, capacity-aware Going / Maybe / Can't Go RSVPs, plus group-linked meetups that can be planned directly from a community
 - profiles with interests and family-stage context
 - community-aware feed combining first-party/content-source reading with live discussions, meetups, and group discovery
+- account-backed saved library with persistent read/unread state, source links, sharing, and deletion
 - web and mobile clients backed by one authorization model
 
 ## Architecture

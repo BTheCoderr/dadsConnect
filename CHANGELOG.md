@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- persistent library read/unread updates through owner-scoped save records
+- real saved-content deletion, source opening, Web Share, and clipboard fallback
+- save timestamps and content URLs in library responses for correct sorting and actions
 - editable public profile identity with real account activity counts
 - safe member profile route exposing only community-facing fields
 - profile UI that clearly separates public identity from self-only family/location preferences
@@ -62,6 +65,7 @@
 - rewrote repository/setup documentation around the active rebuild
 
 ### Removed
+- library demo sorting by UUID, alert-only sharing, local-only read toggles, and fake delete behavior
 - hard-coded feed activity counts, fake suggested groups, fake trending topics, and lorem-ipsum article content
 - console-only/local-only feed save behavior
 - hard-coded demo discussion cards, fake reply counts, and placeholder author identities
