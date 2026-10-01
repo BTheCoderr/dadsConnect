@@ -227,7 +227,7 @@ export default function GuidelinesPage() {
               </div>
             </div>
             <p className="text-gray-600 mt-4">
-              We encourage community members to report violations using our reporting tools. All reports are reviewed by our moderation team.
+              During the invite-only beta, concerns should be sent directly to the organizer who invited you. DadConnect does not yet provide an in-app report button or a staffed review queue.
             </p>
           </div>
         </div>
@@ -237,10 +237,10 @@ export default function GuidelinesPage() {
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Appeals Process</h3>
           <div className="bg-white rounded-lg shadow-sm p-8">
             <p className="text-gray-600 mb-4">
-              If you believe a moderation action was taken in error, you can appeal the decision by contacting our support team. We will review your appeal and provide a response within 5 business days.
+              If a beta access or community decision needs review, contact the organizer who invited you. The beta does not promise a formal appeals timeline.
             </p>
             <p className="text-gray-600">
-              To submit an appeal, please contact us at <a href="mailto:appeals@dadconnect.com" className="text-blue-600 hover:text-blue-700">appeals@dadconnect.com</a> with your account information and a detailed explanation of why you believe the action was incorrect.
+              Use the contact method included with your beta invitation and include enough context to identify the relevant account, group, or meetup.
             </p>
           </div>
         </div>
@@ -252,8 +252,8 @@ export default function GuidelinesPage() {
             If you have questions about these guidelines or need to report a violation, please contact us:
           </p>
           <div className="space-y-2 text-gray-600">
-            <p><strong>Email:</strong> <a href="mailto:community@dadconnect.com" className="text-blue-600 hover:text-blue-700">community@dadconnect.com</a></p>
-            <p><strong>Report Issues:</strong> Use the report button on any post or comment</p>
+            <p><strong>Beta contact:</strong> Use the contact method included with your invitation.</p>
+            <p><strong>Reporting:</strong> Do not post private safety reports in public discussions.</p>
             <p><strong>Emergency:</strong> For urgent safety concerns, contact local authorities</p>
           </div>
         </div>
