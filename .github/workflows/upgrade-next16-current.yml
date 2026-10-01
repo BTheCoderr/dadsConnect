@@ -8,12 +8,12 @@ on:
       - ".github/workflows/upgrade-next16-current.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  migrate:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
@@ -26,9 +26,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Align React 19 type packages
-        run: |
-          npm install @types/react@latest @types/react-dom@latest -D -w @dadsconnect/web --save-exact --package-lock-only
       - name: Clean install
         run: npm ci
       - name: Verify runtime versions
@@ -45,10 +42,3 @@ jobs:
         run: npm run -w @dadsconnect/web lint
       - name: Verify production build
         run: npm run build:web
-      - name: Commit verified type alignment
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/web/package.json package-lock.json
-          git commit -m "Align React 19 types for DadConnect web [skip netlify]"
-          git push origin HEAD:upgrade/next16-react19-current
