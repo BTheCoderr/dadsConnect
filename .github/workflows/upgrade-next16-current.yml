@@ -36,6 +36,7 @@ jobs:
         run: npm run typecheck:mobile
       - name: Verify shared types
         run: npm run typecheck
+      # Final strict validation after domain transform cleanup.
       - name: Verify web types
         run: npx tsc -p apps/web/tsconfig.json --noEmit
       - name: Verify lint
