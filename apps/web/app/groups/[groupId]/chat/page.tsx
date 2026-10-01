@@ -22,18 +22,60 @@ export default function GroupChatPage(){
   const bottomRef=useRef<HTMLDivElement | null>(null)
 
   const loadMessages=useCallback(async () => {
-    const response=await fetch(`/api/groups/${groupId}/messages`,{credentials:"include"})
-    if(response.status === 401){
+    setLoadError(null)
+    const supabase=getSupabaseBrowserClient()
+    const {data:{user}}=await supabase.auth.getUser()
+    if(!user){
       router.replace("/login")
       return false
     }
-    if(response.status === 403){
+
+    const {data:membership,error:membershipError}=await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("group_id",groupId)
+      .eq("user_id",user.id)
+      .maybeSingle()
+
+    if(membershipError || !membership){
       setLoadError("Join this group before opening its chat.")
       return false
     }
-    const data=await response.json().catch(() => ({}))
-    if(!response.ok) throw new Error(data.error || "Failed to load messages")
-    setMessages(data.messages || [])
+
+    const {data,error}=await supabase
+      .from("group_messages")
+      .select(`
+        *,
+        profiles!group_messages_author_id_fkey(id,name,avatar_url)
+      `)
+      .eq("group_id",groupId)
+      .order("created_at",{ascending:false})
+      .limit(100)
+
+    if(error) throw new Error(error.message || "Failed to load messages")
+
+    const next:GroupMessage[]=(data || []).slice().reverse().map(message => ({
+      id:message.id,
+      groupId:message.group_id,
+      authorId:message.author_id,
+      content:message.content,
+      messageType:message.message_type as GroupMessage["messageType"],
+      metadata:message.metadata,
+      createdAt:message.created_at,
+      author:message.profiles ? {
+        id:message.profiles.id,
+        name:message.profiles.name,
+        avatarUrl:message.profiles.avatar_url,
+        city:null,
+        state:null,
+        bio:null,
+        interests:[],
+        kidsAges:[],
+        createdAt:"",
+      } : undefined,
+    }))
+
+    setMessages(next)
     return true
   },[groupId,router])
 
@@ -125,7 +167,7 @@ export default function GroupChatPage(){
       const data=await response.json().catch(() => ({}))
       if(!response.ok) throw new Error(data.error || "Failed to send message")
       setDraft("")
-      setMessages(current => current.some(item => item.id === data.message.id) ? current : [...current,data.message])
+      setMessages(current => current.some(item => item.id === data.message.id) ? current : [...current,data.message].slice(-100))
     }catch(error){
       setSendError(error instanceof Error ? error.message : "Failed to send message")
     }finally{
