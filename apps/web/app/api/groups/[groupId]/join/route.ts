@@ -3,20 +3,18 @@ import { getSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient()
     
-    // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { groupId } = params
+    const { groupId } = await params
 
-    // Check if user is already a member
     const { data: existingMember, error: checkError } = await supabase
       .from('group_members')
       .select('*')
@@ -24,7 +22,7 @@ export async function POST(
       .eq('user_id', user.id)
       .single()
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (checkError && checkError.code !== 'PGRST116') {
       console.error('Error checking membership:', checkError)
       return NextResponse.json({ error: 'Failed to check membership' }, { status: 500 })
     }
@@ -33,7 +31,6 @@ export async function POST(
       return NextResponse.json({ error: 'Already a member of this group' }, { status: 400 })
     }
 
-    // Add user to group
     const { error: joinError } = await supabase
       .from('group_members')
       .insert({
@@ -56,20 +53,18 @@ export async function POST(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient()
     
-    // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { groupId } = params
+    const { groupId } = await params
 
-    // Remove user from group
     const { error: leaveError } = await supabase
       .from('group_members')
       .delete()
