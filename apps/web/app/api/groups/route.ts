@@ -1,38 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServerClient } from '@/lib/supabase-server'
-import { DadGroup } from '@dadsconnect/shared'
+import type { DadGroup } from '@dadsconnect/shared'
 
 export async function GET(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient()
-    
-    // RLS returns public groups to anonymous visitors and also includes
-    // private groups for signed-in members/creators.
-
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Get query parameters
     const { searchParams } = new URL(req.url)
     const category = searchParams.get('category')
     const city = searchParams.get('city')
     const state = searchParams.get('state')
 
-    // Build query
-    let query = supabase
-      .from('dad_groups')
-      .select('*')
+    let query = supabase.from('dad_groups').select('*')
 
-    if (category) {
-      query = query.eq('category', category)
-    }
-
-    if (city) {
-      query = query.eq('city', city)
-    }
-
-    if (state) {
-      query = query.eq('state', state)
-    }
+    if (category) query = query.eq('category', category)
+    if (city) query = query.eq('city', city)
+    if (state) query = query.eq('state', state)
 
     const { data: groups, error } = await query.order('created_at', { ascending: false })
 
@@ -57,16 +41,15 @@ export async function GET(req: NextRequest) {
       memberships?.forEach(membership => memberGroupIds.add(membership.group_id))
     }
 
-    // Transform data to match our types
     const transformedGroups: DadGroup[] = groups?.map(group => ({
       id: group.id,
       name: group.name,
       description: group.description,
-      category: group.category,
+      category: group.category as DadGroup["category"],
       topics: group.topics,
       city: group.city,
       state: group.state,
-      visibility: group.visibility,
+      visibility: group.visibility as DadGroup["visibility"],
       memberCount: group.member_count,
       createdBy: group.created_by,
       createdAt: group.created_at,
@@ -83,8 +66,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient()
-    
-    // Get current user
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -126,7 +108,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create group' }, { status: 500 })
     }
 
-    // Add creator as owner
     const { error: memberError } = await supabase
       .from('group_members')
       .insert({
@@ -152,11 +133,11 @@ export async function POST(req: NextRequest) {
       id: row.id,
       name: row.name,
       description: row.description,
-      category: row.category,
+      category: row.category as DadGroup["category"],
       topics: row.topics,
       city: row.city,
       state: row.state,
-      visibility: row.visibility,
+      visibility: row.visibility as DadGroup["visibility"],
       memberCount: row.member_count,
       createdBy: row.created_by,
       createdAt: row.created_at,
