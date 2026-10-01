@@ -1,0 +1,69 @@
+name: DadConnect Next 16 migration
+
+on:
+  push:
+    branches:
+      - upgrade/next16-react19
+    paths:
+      - ".github/workflows/upgrade-next16.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: upgrade/next16-react19
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Upgrade web runtime and regenerate lockfile
+        run: |
+          npm pkg delete overrides
+          npm pkg set scripts.lint="eslint ." scripts.typecheck="tsc --noEmit" -w @dadsconnect/web
+          rm package-lock.json
+          npm install next@16.3.8 react@19.3.0 react-dom@19.3.0 vaul@latest -w @dadsconnect/web --save-exact --package-lock-only
+          npm install eslint@latest eslint-config-next@16.3.8 @types/react@latest @types/react-dom@latest -D -w @dadsconnect/web --save-exact --package-lock-only
+
+      - name: Verify clean install
+        run: npm ci
+
+      - name: Verify runtime isolation
+        run: |
+          echo "Web:"
+          npm ls next react react-dom -w @dadsconnect/web
+          echo "Mobile:"
+          npm ls react react-dom -w @dadsconnect/mobile
+
+      - name: Verify shared types
+        run: npm run typecheck
+
+      - name: Verify mobile types
+        run: npm run typecheck:mobile
+
+      - name: Verify web types
+        run: npm run -w @dadsconnect/web typecheck
+
+      - name: Verify production build
+        run: npm run build:web
+
+      - name: Commit verified dependency migration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json apps/web/package.json package-lock.json
+          git commit -m "Upgrade DadConnect web to Next 16 and React 19 [skip netlify]"
+          git push origin HEAD:upgrade/next16-react19
