@@ -69,29 +69,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Community Stats */}
-        <div className="mt-16 bg-white rounded-xl p-8 shadow-lg max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
-            Join Our Growing Community
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
-              <div className="text-gray-600">Active Dads</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-green-600 mb-2">50+</div>
-              <div className="text-gray-600">Support Groups</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-orange-600 mb-2">200+</div>
-              <div className="text-gray-600">Monthly Meetups</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-purple-600 mb-2">1000+</div>
-              <div className="text-gray-600">Messages Daily</div>
-            </div>
-          </div>
+        <div className="mt-16 bg-blue-50 border border-blue-100 rounded-xl p-8 max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Invite-only beta</h2>
+          <p className="text-gray-600">DadConnect is validating the real groups → chat → meetup loop before showing community numbers. No demo member or meetup totals are published here.</p>
         </div>
 
         <p className="text-xs text-gray-500 mt-8 text-center">
