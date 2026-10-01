@@ -4,8 +4,8 @@ import { getSupabaseServerClient } from "@/lib/supabase-server"
 
 const paramsSchema = z.object({ groupId: z.string().uuid().or(z.string().min(1)) })
 
-export async function GET(_: Request, { params }: { params: { groupId: string } }) {
-  const parsed = paramsSchema.safeParse(params)
+export async function GET(_: Request, { params }: { params: Promise<{ groupId: string }> }) {
+  const parsed = paramsSchema.safeParse(await params)
   if (!parsed.success) return httpErrors.badRequest("Invalid group id", parsed.error.flatten())
 
   const supabase = await getSupabaseServerClient()
@@ -31,5 +31,3 @@ export async function GET(_: Request, { params }: { params: { groupId: string } 
 
   return jsonOk({ items })
 }
-
-
