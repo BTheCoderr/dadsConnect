@@ -4,13 +4,14 @@ import type { Meetup, MeetupAttendee } from '@dadsconnect/shared'
 
 export async function GET(
   _request: Request,
-  { params }: { params: { meetupId: string } }
+  { params }: { params: Promise<{ meetupId: string }> }
 ) {
   try {
     const supabase=await getSupabaseServerClient()
     const {data:{user},error:authError}=await supabase.auth.getUser()
     if(authError || !user) return NextResponse.json({error:'Unauthorized'},{status:401})
 
+    const { meetupId } = await params
     const {data:meetup,error}=await supabase
       .from('meetups')
       .select(`
@@ -24,7 +25,7 @@ export async function GET(
           profiles!meetup_attendees_user_id_fkey(id,name,avatar_url)
         )
       `)
-      .eq('id',params.meetupId)
+      .eq('id',meetupId)
       .maybeSingle()
 
     if(error){
