@@ -18,7 +18,7 @@ export default function SafetyPage() {
           {[
             ["Protect family details", "Do not post children's names, school details, schedules, or other sensitive family information in public discussions."],
             ["Meet in public", "For a first meetup, choose a public place, use your own judgment, and tell someone you trust where you will be."],
-            ["Address privacy", "Exact meetup addresses are kept out of public meetup rows and are available only to the host and members who RSVP Going."],
+            ["Address privacy", "DadConnect does not collect exact meetup addresses during the beta. Use a public venue name or a general meeting place instead."],
             ["Report concerns", "During beta, contact the organizer who invited you. Do not put a safety report into a public post or group discussion."],
           ].map(([title, copy]) => (
             <article key={title} className="rounded-2xl bg-white p-6 shadow-sm">
