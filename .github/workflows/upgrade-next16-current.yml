@@ -25,11 +25,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - name: Rebuild workspace dependency layout
+      - name: Rebuild isolated workspace lockfile
         run: |
-          npm pkg set dependencies.react=19.3.0 dependencies.react-dom=19.3.0
-          npm pkg set devDependencies.eslint=9.39.5 -w @dadsconnect/web
           rm package-lock.json
           npm install --package-lock-only
       - name: Clean install
@@ -39,7 +36,7 @@ jobs:
           echo "Web tree"
           npm ls next react react-dom @supabase/ssr @supabase/supabase-js eslint eslint-config-next -w @dadsconnect/web
           echo "Mobile tree"
-          npm ls react react-dom -w @dadsconnect/mobile
+          npm ls react react-dom react-native expo -w @dadsconnect/mobile
       - name: Verify mobile types
         run: npm run typecheck:mobile
       - name: Verify shared types
@@ -50,10 +47,10 @@ jobs:
         run: npm run -w @dadsconnect/web lint
       - name: Verify production build
         run: npm run build:web
-      - name: Commit clean workspace lockfile
+      - name: Commit verified isolated lockfile
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json apps/web/package.json package-lock.json
-          git commit -m "Isolate React runtimes for Next 16 and Expo [skip netlify]"
+          git add package-lock.json
+          git commit -m "Regenerate isolated workspace lockfile [skip netlify]"
           git push origin HEAD:upgrade/next16-react19-current
