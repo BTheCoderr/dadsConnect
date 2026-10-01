@@ -3,9 +3,8 @@
 import type React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { HomeIcon, UsersIcon, CalendarDaysIcon, MessageCircleIcon, UserIcon, LogOutIcon } from "lucide-react"
+import { HomeIcon, UsersIcon, CalendarDaysIcon, MessageCircleIcon, UserIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -14,22 +13,12 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname()
 
-  const handleLogout = () => {
-    // Handle logout logic here
-    console.log("User logged out")
-    // In a real app, you'd clear session/token and redirect to login
-    window.location.href = "/login" // Simple redirect for demo
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-background p-4 shadow-sm md:hidden">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">DadConnect</h1>
-          <Button variant="ghost" size="icon" onClick={handleLogout}>
-            <LogOutIcon className="h-5 w-5" />
-            <span className="sr-only">Logout</span>
-          </Button>
+          <Link href="/profile" className="text-sm font-medium text-blue-700">Profile</Link>
         </div>
       </header>
 
