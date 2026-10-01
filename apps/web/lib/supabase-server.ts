@@ -1,6 +1,6 @@
 import { cookies, headers } from "next/headers"
 import { createServerClient, type CookieOptions } from "@supabase/ssr"
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@dadsconnect/shared"
 
 function env(name: string, fallback?: string) {
@@ -9,7 +9,7 @@ function env(name: string, fallback?: string) {
   return value
 }
 
-export async function getSupabaseServerClient() {
+export async function getSupabaseServerClient(): Promise<SupabaseClient<Database>> {
   const url = env("NEXT_PUBLIC_SUPABASE_URL")
   const key = env("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY")
   const cookieStore = await cookies()
