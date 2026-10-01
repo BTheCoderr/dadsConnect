@@ -50,7 +50,6 @@ export default function CreateMeetupPage(){
       description:String(form.get('description') || ''),
       activityType:String(form.get('activityType') || ''),
       location:String(form.get('location') || ''),
-      address:String(form.get('address') || ''),
       city:String(form.get('city') || ''),
       state:String(form.get('state') || ''),
       startTime:localStart ? new Date(localStart).toISOString() : '',
@@ -86,7 +85,7 @@ export default function CreateMeetupPage(){
         <Link href="/meetups" className="text-sm text-blue-600">← Back to meetups</Link>
         <div className="mt-4 rounded-xl bg-white p-6 shadow-lg sm:p-8">
           <h1 className="text-3xl font-bold text-gray-900">Create a meetup</h1>
-          <p className="mt-2 text-gray-600">Keep the plan simple enough that people can actually show up.</p>
+          <p className="mt-2 text-gray-600">Keep the plan simple enough that people can actually show up. During beta, use a public venue or general meeting place rather than an exact private address.</p>
 
           <form onSubmit={submit} className="mt-8 space-y-5">
             <label className="block text-sm font-medium">Title<input name="title" required maxLength={120} className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="Saturday park meetup" /></label>
@@ -103,7 +102,6 @@ export default function CreateMeetupPage(){
               <label className="text-sm font-medium">Venue / place<input name="location" className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="Roger Williams Park" /></label>
               <label className="text-sm font-medium">Max going<input name="maxAttendees" type="number" min={1} max={10000} className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="Optional" /></label>
             </div>
-            <label className="block text-sm font-medium">Address<input name="address" className="mt-2 w-full rounded-lg border px-3 py-2" placeholder="Optional exact meetup address" /></label>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-medium">City<input name="city" className="mt-2 w-full rounded-lg border px-3 py-2" /></label>
               <label className="text-sm font-medium">State<input name="state" className="mt-2 w-full rounded-lg border px-3 py-2" /></label>
