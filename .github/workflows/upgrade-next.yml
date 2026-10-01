@@ -25,6 +25,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # Rebuild lockfile from corrected workspace metadata.
       - name: Pin secure Next.js and one React runtime
         run: |
           npm pkg set dependencies.next=15.5.27 dependencies.react=18.2.0 dependencies.react-dom=18.2.0 -w @dadsconnect/web
