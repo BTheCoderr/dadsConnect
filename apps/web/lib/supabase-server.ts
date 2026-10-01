@@ -1,6 +1,5 @@
 import { cookies, headers } from "next/headers"
-import { createServerClient, type CookieOptions } from "@supabase/ssr"
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import { createServerClient } from "@supabase/ssr"
 import type { Database } from "@dadsconnect/shared"
 
 function env(name: string, fallback?: string) {
@@ -17,23 +16,30 @@ export async function getSupabaseServerClient() {
   const authHeader = headersList.get("authorization")
   const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
 
-  if (bearer) {
-    return createSupabaseClient<Database>(url, key, {
-      global: { headers: { Authorization: `Bearer ${bearer}` } },
-      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
-    })
-  }
-
   return createServerClient<Database>(url, key, {
+    ...(bearer
+      ? {
+          global: { headers: { Authorization: `Bearer ${bearer}` } },
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+            detectSessionInUrl: false,
+          },
+        }
+      : {}),
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+      getAll() {
+        return cookieStore.getAll()
       },
-      set(name: string, value: string, options: CookieOptions) {
-        cookieStore.set({ name, value, ...options })
-      },
-      remove(name: string, options: CookieOptions) {
-        cookieStore.set({ name, value: "", ...options })
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
+        } catch {
+          // Server Components cannot always write cookies. The request proxy
+          // owns refresh persistence when the runtime allows it.
+        }
       },
     },
   })

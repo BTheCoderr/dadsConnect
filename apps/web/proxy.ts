@@ -12,12 +12,10 @@ function corsResponse(req: NextRequest) {
   return res
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   if (pathname.startsWith("/api/")) {
-    if (req.method === "OPTIONS") {
-      return corsResponse(req)
-    }
+    if (req.method === "OPTIONS") return corsResponse(req)
     const res = NextResponse.next()
     const origin = req.headers.get("origin") || "*"
     res.headers.set("Access-Control-Allow-Origin", origin)
@@ -28,8 +26,4 @@ export function middleware(req: NextRequest) {
   return NextResponse.next()
 }
 
-export const config = {
-  matcher: ["/api/:path*"],
-}
-
-
+export const config = { matcher: ["/api/:path*"] }

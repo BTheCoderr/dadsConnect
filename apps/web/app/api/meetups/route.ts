@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       const attendees: MeetupAttendee[] = meetup.meetup_attendees?.map(attendee => ({
         meetupId: attendee.meetup_id,
         userId: attendee.user_id,
-        status: attendee.status,
+        status: attendee.status as MeetupAttendee["status"],
         joinedAt: attendee.joined_at,
         user: attendee.profiles ? {
           id: attendee.profiles.id,
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
         createdBy: meetup.created_by,
         title: meetup.title,
         description: meetup.description,
-        activityType: meetup.activity_type,
+        activityType: meetup.activity_type as Meetup["activityType"],
         location: meetup.location,
         address: meetup.address,
         city: meetup.city,
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
         endTime: meetup.end_time,
         maxAttendees: meetup.max_attendees,
         currentAttendees: meetup.current_attendees,
-        status: meetup.status,
+        status: meetup.status as Meetup["status"],
         createdAt: meetup.created_at,
         creator: meetup.profiles ? {
           id: meetup.profiles.id,
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
       createdBy: row.created_by,
       title: row.title,
       description: row.description,
-      activityType: row.activity_type,
+      activityType: row.activity_type as Meetup["activityType"],
       location: row.location,
       address: row.address,
       city: row.city,
@@ -208,7 +208,7 @@ export async function POST(req: NextRequest) {
       endTime: row.end_time,
       maxAttendees: row.max_attendees,
       currentAttendees: row.current_attendees,
-      status: row.status,
+      status: row.status as Meetup["status"],
       createdAt: row.created_at,
       userRsvp: 'going',
     }

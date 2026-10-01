@@ -60,7 +60,7 @@ export default function GroupChatPage(){
       authorId:message.author_id,
       content:message.content,
       messageType:message.message_type as GroupMessage["messageType"],
-      metadata:message.metadata,
+      metadata:message.metadata as GroupMessage["metadata"],
       createdAt:message.created_at,
       author:message.profiles ? {
         id:message.profiles.id,

@@ -1,0 +1,56 @@
+name: DadConnect Next 16 current migration
+
+on:
+  push:
+    branches:
+      - upgrade/next16-react19-current
+    paths:
+      - ".github/workflows/upgrade-next16-current.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: upgrade/next16-react19-current
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rebuild isolated workspace lockfile
+        run: |
+          rm package-lock.json
+          npm install --package-lock-only
+      - name: Clean install
+        run: npm ci
+      - name: Verify isolated runtime versions
+        run: |
+          echo "Web tree"
+          npm ls next react react-dom @supabase/ssr @supabase/supabase-js eslint eslint-config-next -w @dadsconnect/web
+          echo "Mobile tree"
+          npm ls react react-dom react-native expo -w @dadsconnect/mobile
+      - name: Verify mobile types
+        run: npm run typecheck:mobile
+      - name: Verify shared types
+        run: npm run typecheck
+      - name: Verify web types
+        run: npx tsc -p apps/web/tsconfig.json --noEmit
+      - name: Verify lint
+        run: npm run -w @dadsconnect/web lint
+      - name: Verify production build
+        run: npm run build:web
+      - name: Commit verified isolated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "Regenerate isolated workspace lockfile [skip netlify]"
+          git push origin HEAD:upgrade/next16-react19-current

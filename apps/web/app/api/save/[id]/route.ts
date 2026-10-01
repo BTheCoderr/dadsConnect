@@ -15,51 +15,31 @@ async function getUser(req:Request){
   return {supabase,user,error}
 }
 
-export async function PATCH(req:Request,{params}:{params:{id:string}}){
+export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){
   const {supabase,user,error:userError}=await getUser(req)
   if(userError || !user) return NextResponse.json({error:"Unauthorized"},{status:401})
 
+  const { id } = await params
   const parsed=patchSchema.safeParse(await req.json().catch(() => ({})))
   if(!parsed.success) return NextResponse.json({error:"Invalid update"},{status:400})
 
-  const updates:{
-    read_status?:"read"|"unread"
-    note?:string | null
-  }={}
+  const updates:{read_status?:"read"|"unread";note?:string | null}={}
   if(parsed.data.readStatus !== undefined) updates.read_status=parsed.data.readStatus
   if(parsed.data.note !== undefined) updates.note=parsed.data.note
 
-  const {data,error}=await supabase
-    .from("saves")
-    .update(updates)
-    .eq("id",params.id)
-    .eq("user_id",user.id)
-    .select("id,read_status,note,ts")
-    .maybeSingle()
-
+  const {data,error}=await supabase.from("saves").update(updates).eq("id",id).eq("user_id",user.id).select("id,read_status,note,ts").maybeSingle()
   if(error) return NextResponse.json({error:error.message},{status:500})
   if(!data) return NextResponse.json({error:"Saved item not found"},{status:404})
 
-  return NextResponse.json({
-    id:data.id,
-    readStatus:data.read_status,
-    note:data.note,
-    savedAt:data.ts,
-  })
+  return NextResponse.json({id:data.id,readStatus:data.read_status,note:data.note,savedAt:data.ts})
 }
 
-export async function DELETE(req:Request,{params}:{params:{id:string}}){
+export async function DELETE(req:Request,{params}:{params:Promise<{id:string}>}){
   const {supabase,user,error:userError}=await getUser(req)
   if(userError || !user) return NextResponse.json({error:"Unauthorized"},{status:401})
 
-  const {data,error}=await supabase
-    .from("saves")
-    .delete()
-    .eq("id",params.id)
-    .eq("user_id",user.id)
-    .select("id")
-    .maybeSingle()
-
+  const { id } = await params
+  const {data,error}=await supabase.from("saves").delete().eq("id",id).eq("user_id",user.id).select("id").maybeSingle()
   if(error) return NextResponse.json({error:error.message},{status:500})
   if(!data) return NextResponse.json({error:"Saved item not found"},{status:404})
 
