@@ -13,7 +13,7 @@ permissions:
 jobs:
   migrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
@@ -26,24 +26,29 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Upgrade only web runtime
+      - name: Align React 19 type packages
         run: |
-          npm pkg delete overrides
-          npm pkg set scripts.lint="eslint ." -w @dadsconnect/web
-          npm install next@16.3.8 react@19.3.0 react-dom@19.3.0 vaul@latest -w @dadsconnect/web --save-exact --package-lock-only
-          npm install eslint@latest eslint-config-next@16.3.8 -D -w @dadsconnect/web --save-exact --package-lock-only
+          npm install @types/react@latest @types/react-dom@latest -D -w @dadsconnect/web --save-exact --package-lock-only
       - name: Clean install
         run: npm ci
+      - name: Verify runtime versions
+        run: |
+          npm ls next react react-dom -w @dadsconnect/web
+          npm ls react react-dom -w @dadsconnect/mobile
       - name: Verify mobile types
         run: npm run typecheck:mobile
       - name: Verify shared types
         run: npm run typecheck
+      - name: Verify web types
+        run: npx tsc -p apps/web/tsconfig.json --noEmit
+      - name: Verify lint
+        run: npm run -w @dadsconnect/web lint
       - name: Verify production build
         run: npm run build:web
-      - name: Commit verified migration
+      - name: Commit verified type alignment
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json apps/web/package.json package-lock.json
-          git commit -m "Upgrade DadConnect web to Next 16.3.8 and React 19.3 [skip netlify]"
+          git add apps/web/package.json package-lock.json
+          git commit -m "Align React 19 types for DadConnect web [skip netlify]"
           git push origin HEAD:upgrade/next16-react19-current
