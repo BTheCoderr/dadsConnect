@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServerClient } from '@/lib/supabase-server'
-import { GroupMessage } from '@dadsconnect/shared'
+import type { GroupMessage } from '@dadsconnect/shared'
 
 export async function GET(
   req: NextRequest,
@@ -42,8 +42,8 @@ export async function GET(
       groupId: message.group_id,
       authorId: message.author_id,
       content: message.content,
-      messageType: message.message_type,
-      metadata: message.metadata,
+      messageType: message.message_type as GroupMessage["messageType"],
+      metadata: message.metadata as GroupMessage["metadata"],
       createdAt: message.created_at,
       author: message.profiles ? {
         id: message.profiles.id,
@@ -112,8 +112,8 @@ export async function POST(
       groupId: message.group_id,
       authorId: message.author_id,
       content: message.content,
-      messageType: message.message_type,
-      metadata: message.metadata,
+      messageType: message.message_type as GroupMessage["messageType"],
+      metadata: message.metadata as GroupMessage["metadata"],
       createdAt: message.created_at,
       author: message.profiles ? {
         id: message.profiles.id,
