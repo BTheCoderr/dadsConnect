@@ -17,22 +17,65 @@ export default function GroupChatPage(){
   const [draft,setDraft]=useState("")
   const [loading,setLoading]=useState(true)
   const [sending,setSending]=useState(false)
-  const [error,setError]=useState<string | null>(null)
+  const [loadError,setLoadError]=useState<string | null>(null)
+  const [sendError,setSendError]=useState<string | null>(null)
   const bottomRef=useRef<HTMLDivElement | null>(null)
 
   const loadMessages=useCallback(async () => {
-    const response=await fetch(`/api/groups/${groupId}/messages`,{credentials:"include"})
-    if(response.status === 401){
+    setLoadError(null)
+    const supabase=getSupabaseBrowserClient()
+    const {data:{user}}=await supabase.auth.getUser()
+    if(!user){
       router.replace("/login")
       return false
     }
-    if(response.status === 403){
-      setError("Join this group before opening its chat.")
+
+    const {data:membership,error:membershipError}=await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("group_id",groupId)
+      .eq("user_id",user.id)
+      .maybeSingle()
+
+    if(membershipError || !membership){
+      setLoadError("Join this group before opening its chat.")
       return false
     }
-    const data=await response.json().catch(() => ({}))
-    if(!response.ok) throw new Error(data.error || "Failed to load messages")
-    setMessages(data.messages || [])
+
+    const {data,error}=await supabase
+      .from("group_messages")
+      .select(`
+        *,
+        profiles!group_messages_author_id_fkey(id,name,avatar_url)
+      `)
+      .eq("group_id",groupId)
+      .order("created_at",{ascending:false})
+      .limit(100)
+
+    if(error) throw new Error(error.message || "Failed to load messages")
+
+    const next:GroupMessage[]=(data || []).slice().reverse().map(message => ({
+      id:message.id,
+      groupId:message.group_id,
+      authorId:message.author_id,
+      content:message.content,
+      messageType:message.message_type as GroupMessage["messageType"],
+      metadata:message.metadata,
+      createdAt:message.created_at,
+      author:message.profiles ? {
+        id:message.profiles.id,
+        name:message.profiles.name,
+        avatarUrl:message.profiles.avatar_url,
+        city:null,
+        state:null,
+        bio:null,
+        interests:[],
+        kidsAges:[],
+        createdAt:"",
+      } : undefined,
+    }))
+
+    setMessages(next)
     return true
   },[groupId,router])
 
@@ -57,7 +100,7 @@ export default function GroupChatPage(){
         .maybeSingle()
 
       if(groupError || !groupRow){
-        setError(groupError?.message || "Group not found.")
+        setLoadError(groupError?.message || "Group not found.")
         setLoading(false)
         return
       }
@@ -92,7 +135,7 @@ export default function GroupChatPage(){
           })
           .subscribe()
       }catch(error){
-        setError(error instanceof Error ? error.message : "Failed to load chat")
+        setLoadError(error instanceof Error ? error.message : "Failed to load chat")
       }finally{
         if(active) setLoading(false)
       }
@@ -113,20 +156,20 @@ export default function GroupChatPage(){
     const content=draft.trim()
     if(!content || sending) return
     setSending(true)
-    setError(null)
+    setSendError(null)
     try{
       const response=await fetch(`/api/groups/${groupId}/messages`,{
         method:"POST",
         credentials:"include",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({content,messageType:"text"}),
+        body:JSON.stringify({content}),
       })
       const data=await response.json().catch(() => ({}))
       if(!response.ok) throw new Error(data.error || "Failed to send message")
       setDraft("")
-      setMessages(current => current.some(item => item.id === data.message.id) ? current : [...current,data.message])
+      setMessages(current => current.some(item => item.id === data.message.id) ? current : [...current,data.message].slice(-100))
     }catch(error){
-      setError(error instanceof Error ? error.message : "Failed to send message")
+      setSendError(error instanceof Error ? error.message : "Failed to send message")
     }finally{
       setSending(false)
     }
@@ -147,7 +190,7 @@ export default function GroupChatPage(){
         </div>
       </header>
 
-      {error && <div role="alert" className="m-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">{error}</div>}
+      {loadError && <div role="alert" className="m-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">{loadError}</div>}
 
       <section className="border-b bg-white px-4 py-4">
         <div className="mb-3 flex items-center justify-between">
@@ -167,7 +210,7 @@ export default function GroupChatPage(){
       </section>
 
       <section className="flex-1 space-y-3 overflow-y-auto px-4 py-5">
-        {!messages.length && !error && <div className="py-16 text-center text-gray-500">No messages yet. Start the conversation.</div>}
+        {!messages.length && !loadError && <div className="py-16 text-center text-gray-500">No messages yet. Start the conversation.</div>}
         {messages.map(message => {
           const own=message.authorId === userId
           return (
@@ -181,15 +224,16 @@ export default function GroupChatPage(){
         <div ref={bottomRef} />
       </section>
 
-      {!error && (
-        <form onSubmit={send} className="sticky bottom-0 flex gap-2 border-t bg-white p-4">
+      <form onSubmit={send} className="sticky bottom-16 border-t bg-white p-4 md:bottom-0">
+        {sendError && <p role="alert" className="mb-2 rounded-lg bg-red-50 p-2 text-sm text-red-700">{sendError}</p>}
+        <div className="flex gap-2">
           <textarea value={draft} onChange={event => setDraft(event.target.value)} maxLength={4000} rows={2}
             className="min-h-12 flex-1 resize-none rounded-xl border px-3 py-2 text-sm" placeholder="Message the group…" />
-          <button type="submit" disabled={sending || !draft.trim()} className="rounded-xl bg-blue-600 px-5 py-2 font-medium text-white disabled:bg-gray-300">
+          <button type="submit" disabled={sending || !draft.trim() || Boolean(loadError)} className="rounded-xl bg-blue-600 px-5 py-2 font-medium text-white disabled:bg-gray-300">
             {sending ? "Sending…" : "Send"}
           </button>
-        </form>
-      )}
+        </div>
+      </form>
     </main>
   )
 }

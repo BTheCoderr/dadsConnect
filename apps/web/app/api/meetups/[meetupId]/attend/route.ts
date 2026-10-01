@@ -5,7 +5,7 @@ const RSVP_STATUSES = new Set(['going','maybe','not_going'])
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { meetupId: string } }
+  { params }: { params: Promise<{ meetupId: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient()
@@ -14,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { meetupId } = params
+    const { meetupId } = await params
     const { status = 'going' } = await req.json()
 
     if (!RSVP_STATUSES.has(status)) {
@@ -89,7 +89,7 @@ export async function POST(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { meetupId: string } }
+  { params }: { params: Promise<{ meetupId: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient()
@@ -98,7 +98,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { meetupId } = params
+    const { meetupId } = await params
     const { error: deleteError } = await supabase
       .from('meetup_attendees')
       .delete()

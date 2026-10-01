@@ -13,7 +13,7 @@ export default function TermsPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Last Updated */}
         <div className="mb-8">
-          <p className="text-sm text-gray-500">Last updated: December 2024</p>
+          <p className="text-sm text-gray-500">Last updated: October 1, 2026</p>
         </div>
 
         {/* Introduction */}
@@ -130,7 +130,7 @@ export default function TermsPage() {
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Termination by You</h4>
-                <p className="text-gray-600">You may terminate your account at any time by contacting us or using the account deletion feature in your settings.</p>
+                <p className="text-gray-600">There is not yet a self-service account deletion control. During the invite-only beta, request deletion through the organizer who invited you.</p>
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Termination by Us</h4>
@@ -184,7 +184,7 @@ export default function TermsPage() {
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Governing Law</h3>
           <div className="bg-white rounded-lg shadow-sm p-8">
             <p className="text-gray-600">
-              These Terms shall be governed by and construed in accordance with the laws of the State of California, without regard to its conflict of law principles. Any disputes arising from these Terms or your use of our services shall be resolved in the courts of California.
+              DadConnect does not publish a fictional business location for this beta. Any rights or obligations that cannot be changed by these Terms remain governed by the law that actually applies.
             </p>
           </div>
         </div>
@@ -196,8 +196,8 @@ export default function TermsPage() {
             If you have any questions about these Terms of Service, please contact us:
           </p>
           <div className="space-y-2 text-gray-600">
-            <p><strong>Email:</strong> <a href="mailto:legal@dadconnect.com" className="text-blue-600 hover:text-blue-700">legal@dadconnect.com</a></p>
-            <p><strong>Address:</strong> DadConnect Legal Team, 123 Dad Street, Father City, FC 12345</p>
+            <p><strong>Beta contact:</strong> Use the contact method included with your invitation.</p>
+            <p><strong>Support page:</strong> <a href="/contact" className="text-blue-600 hover:text-blue-700">DadConnect contact guidance</a></p>
           </div>
         </div>
       </div>

@@ -30,7 +30,7 @@ DadConnect is no longer being treated as a static community mockup. The current 
 
 **DadConnect is a web + mobile community platform for fathers to find local groups, coordinate meetups, share practical support, and stay connected around parenting and everyday life.**
 
-> Status: active rebuild. DadConnect has its own dedicated Supabase project with the reviewed schema live, RLS enabled on all exposed tables, and a clean Supabase security advisor.
+> Status: invite-only web beta hardening. Live web: https://dadsconnect.netlify.app. Mobile is intentionally frozen while the web loop is validated.
 
 ## Product
 

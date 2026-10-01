@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient()
@@ -14,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { groupId } = params
+    const { groupId } = await params
 
     // Check if user is already a member
     const { data: existingMember, error: checkError } = await supabase
@@ -56,7 +56,7 @@ export async function POST(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { groupId: string } }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient()
@@ -67,7 +67,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { groupId } = params
+    const { groupId } = await params
 
     // Remove user from group
     const { error: leaveError } = await supabase

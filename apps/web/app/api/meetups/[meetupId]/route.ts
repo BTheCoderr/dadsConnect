@@ -4,7 +4,7 @@ import type { Meetup, MeetupAttendee } from '@dadsconnect/shared'
 
 export async function GET(
   _request: Request,
-  { params }: { params: { meetupId: string } }
+  { params }: { params: Promise<{ meetupId: string }> }
 ) {
   try {
     const supabase=await getSupabaseServerClient()
@@ -24,7 +24,7 @@ export async function GET(
           profiles!meetup_attendees_user_id_fkey(id,name,avatar_url)
         )
       `)
-      .eq('id',params.meetupId)
+      .eq('id',(await params).meetupId)
       .maybeSingle()
 
     if(error){
