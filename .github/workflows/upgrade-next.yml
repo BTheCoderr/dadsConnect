@@ -25,14 +25,12 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Update Next.js, React, and lockfile
-        run: |
-          npm install next@15.5.27 react@19.3.0 react-dom@19.3.0 -w @dadsconnect/web --package-lock-only --save-exact
-          npm install @types/react@latest @types/react-dom@latest -D -w @dadsconnect/web --package-lock-only --save-exact
+      - name: Update Next.js and keep matched React 18 web pair
+        run: npm install next@15.5.27 react@18.3.1 react-dom@18.3.1 -w @dadsconnect/web --package-lock-only --save-exact
       - name: Verify clean install
         run: npm ci
       - name: Show web runtime versions
-        run: npm ls next react react-dom -w @dadsconnect/web
+        run: npm ls next react react-dom -w @dadsconnect/web || true
       - name: Verify shared types
         run: npm run typecheck
       - name: Verify mobile types
@@ -44,5 +42,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add apps/web/package.json package-lock.json
-          git commit -m "Upgrade Next.js and React security baseline [skip netlify]"
+          git commit -m "Upgrade Next.js security baseline [skip netlify]"
           git push
