@@ -36,7 +36,7 @@ export async function GET(
     const attendees:MeetupAttendee[]=meetup.meetup_attendees?.map(attendee => ({
       meetupId:attendee.meetup_id,
       userId:attendee.user_id,
-      status:attendee.status,
+      status:attendee.status as MeetupAttendee["status"],
       joinedAt:attendee.joined_at,
       user:attendee.profiles ? {
         id:attendee.profiles.id,
@@ -57,7 +57,7 @@ export async function GET(
       createdBy:meetup.created_by,
       title:meetup.title,
       description:meetup.description,
-      activityType:meetup.activity_type,
+      activityType:meetup.activity_type as Meetup["activityType"],
       location:meetup.location,
       address:meetup.address,
       city:meetup.city,
@@ -66,7 +66,7 @@ export async function GET(
       endTime:meetup.end_time,
       maxAttendees:meetup.max_attendees,
       currentAttendees:meetup.current_attendees,
-      status:meetup.status,
+      status:meetup.status as Meetup["status"],
       createdAt:meetup.created_at,
       creator:meetup.profiles ? {
         id:meetup.profiles.id,
