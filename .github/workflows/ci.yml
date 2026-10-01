@@ -15,8 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      NEXT_PUBLIC_SUPABASE_URL: https://swkmxrkwjlwtauymocmg.supabase.co
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_9mxlr2HdqJ1PlEphC6KuZQ_Hdq6LXg7
+      # CI only needs non-empty public Supabase config so Next.js can prerender
+      # client pages. Production values are configured in Netlify.
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
       NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - name: Checkout
