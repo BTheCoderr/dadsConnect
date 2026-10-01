@@ -15,10 +15,11 @@ async function getUser(req:Request){
   return {supabase,user,error}
 }
 
-export async function PATCH(req:Request,{params}:{params:{id:string}}){
+export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){
   const {supabase,user,error:userError}=await getUser(req)
   if(userError || !user) return NextResponse.json({error:"Unauthorized"},{status:401})
 
+  const { id } = await params
   const parsed=patchSchema.safeParse(await req.json().catch(() => ({})))
   if(!parsed.success) return NextResponse.json({error:"Invalid update"},{status:400})
 
@@ -32,7 +33,7 @@ export async function PATCH(req:Request,{params}:{params:{id:string}}){
   const {data,error}=await supabase
     .from("saves")
     .update(updates)
-    .eq("id",params.id)
+    .eq("id",id)
     .eq("user_id",user.id)
     .select("id,read_status,note,ts")
     .maybeSingle()
@@ -48,14 +49,15 @@ export async function PATCH(req:Request,{params}:{params:{id:string}}){
   })
 }
 
-export async function DELETE(req:Request,{params}:{params:{id:string}}){
+export async function DELETE(req:Request,{params}:{params:Promise<{id:string}>}){
   const {supabase,user,error:userError}=await getUser(req)
   if(userError || !user) return NextResponse.json({error:"Unauthorized"},{status:401})
 
+  const { id } = await params
   const {data,error}=await supabase
     .from("saves")
     .delete()
-    .eq("id",params.id)
+    .eq("id",id)
     .eq("user_id",user.id)
     .select("id")
     .maybeSingle()
