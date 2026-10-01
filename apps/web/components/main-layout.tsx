@@ -33,7 +33,18 @@ export default function MainLayout({ children }: MainLayoutProps) {
         </div>
       </header>
 
-      <main className="flex-1">{children}</main>
+      <header className="sticky top-0 z-40 hidden w-full border-b bg-background shadow-sm md:block">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-6">
+          <Link href="/feed" className="mr-auto text-xl font-bold">DadConnect</Link>
+          <Link href="/feed" className={pathname === "/feed" ? "font-semibold text-primary" : "text-muted-foreground"}>Feed</Link>
+          <Link href="/groups" className={pathname.startsWith("/groups") ? "font-semibold text-primary" : "text-muted-foreground"}>Groups</Link>
+          <Link href="/meetups" className={pathname.startsWith("/meetups") ? "font-semibold text-primary" : "text-muted-foreground"}>Meetups</Link>
+          <Link href="/discussions" className={pathname.startsWith("/discussions") ? "font-semibold text-primary" : "text-muted-foreground"}>Discussions</Link>
+          <Link href="/profile" className={pathname.startsWith("/profile") ? "font-semibold text-primary" : "text-muted-foreground"}>Profile</Link>
+        </div>
+      </header>
+
+      <main className="flex-1 pb-20 md:pb-0">{children}</main>
 
       <footer className="fixed inset-x-0 bottom-0 z-50 border-t bg-background shadow-lg md:hidden">
         <nav className="flex h-16 items-center justify-around">
