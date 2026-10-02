@@ -2,217 +2,55 @@
 
 import { useEffect,useMemo,useState } from "react"
 import Link from "next/link"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { BookmarkIcon,MessageSquareIcon,UsersIcon,CalendarDaysIcon } from "lucide-react"
+import { BookmarkIcon,MessageSquareIcon,UsersIcon,CalendarDaysIcon,ArrowRightIcon } from "lucide-react"
 import ContentCard from "@/components/content-card"
 import ArticleModal from "@/components/article-modal"
 import type { ContentItem,Meetup,Thread } from "@dadsconnect/shared"
 
-type FeedCard={
-  id:string
-  source:string
-  title:string
-  image:string
-  excerpt:string
-  readTime:string
-  url:string
-  topics:string[]
-}
-
-type SuggestedGroup={
-  id:string
-  name:string
-  topics:string[]
-  memberCount:number
-  visibility:"public"|"private"
-}
+type FeedCard={id:string;source:string;title:string;image:string;excerpt:string;readTime:string;url:string;topics:string[]}
+type SuggestedGroup={id:string;name:string;topics:string[];memberCount:number;visibility:"public"|"private"}
 
 export default function FeedPage(){
-  const [content,setContent]=useState<FeedCard[]>([])
-  const [threads,setThreads]=useState<Thread[]>([])
-  const [meetups,setMeetups]=useState<Meetup[]>([])
-  const [groups,setGroups]=useState<SuggestedGroup[]>([])
-  const [currentIndex,setCurrentIndex]=useState(0)
-  const [savedIds,setSavedIds]=useState<Set<string>>(new Set())
-  const [savedCount,setSavedCount]=useState(0)
-  const [selectedArticle,setSelectedArticle]=useState<FeedCard | null>(null)
-  const [error,setError]=useState<string | null>(null)
-  const [loading,setLoading]=useState(true)
-
-  useEffect(() => {
-    ;(async () => {
-      try{
-        const [feedResponse,threadResponse,meetupResponse,groupResponse,libraryResponse]=await Promise.all([
-          fetch("/api/feed",{credentials:"include"}),
-          fetch("/api/threads?limit=4",{credentials:"include"}),
-          fetch("/api/meetups",{credentials:"include"}),
-          fetch("/api/groups/suggested",{credentials:"include"}),
-          fetch("/api/library",{credentials:"include"}),
-        ])
-
-        if(threadResponse.status === 401 || meetupResponse.status === 401){
-          window.location.href="/login"
-          return
-        }
-
-        const [feedData,threadData,meetupData,groupData,libraryData]=await Promise.all([
-          feedResponse.json().catch(() => ({})),
-          threadResponse.json().catch(() => ({})),
-          meetupResponse.json().catch(() => ({})),
-          groupResponse.json().catch(() => ({})),
-          libraryResponse.json().catch(() => ({})),
-        ])
-
-        if(!feedResponse.ok) throw new Error(feedData.error || "Failed to load feed")
-
-        setContent((feedData.items || []).map((item:ContentItem) => ({
-          id:item.id,
-          source:item.source || "DadConnect",
-          title:item.title,
-          image:item.image || "/placeholder-vk2kx.png",
-          excerpt:item.excerpt || "",
-          readTime:`${item.readTime || 5} min`,
-          url:item.url,
-          topics:item.topics || [],
-        })))
-        if(threadResponse.ok) setThreads(threadData.threads || [])
-        if(meetupResponse.ok) setMeetups((meetupData.meetups || []).slice(0,4))
-        if(groupResponse.ok) setGroups((groupData.items || []).slice(0,5))
-        if(libraryResponse.ok) setSavedCount((libraryData.items || []).length)
-      }catch(error){
-        setError(error instanceof Error ? error.message : "Failed to load DadConnect")
-      }finally{
-        setLoading(false)
-      }
-    })()
-  },[])
-
+  const [content,setContent]=useState<FeedCard[]>([]);const [threads,setThreads]=useState<Thread[]>([]);const [meetups,setMeetups]=useState<Meetup[]>([]);const [groups,setGroups]=useState<SuggestedGroup[]>([]);const [currentIndex,setCurrentIndex]=useState(0);const [savedIds,setSavedIds]=useState<Set<string>>(new Set());const [savedCount,setSavedCount]=useState(0);const [selectedArticle,setSelectedArticle]=useState<FeedCard|null>(null);const [error,setError]=useState<string|null>(null);const [loading,setLoading]=useState(true)
+  useEffect(()=>{;(async()=>{try{const [feedResponse,threadResponse,meetupResponse,groupResponse,libraryResponse]=await Promise.all([fetch("/api/feed",{credentials:"include"}),fetch("/api/threads?limit=4",{credentials:"include"}),fetch("/api/meetups",{credentials:"include"}),fetch("/api/groups/suggested",{credentials:"include"}),fetch("/api/library",{credentials:"include"})]);if(threadResponse.status===401||meetupResponse.status===401){window.location.href="/login";return}const [feedData,threadData,meetupData,groupData,libraryData]=await Promise.all([feedResponse.json().catch(()=>({})),threadResponse.json().catch(()=>({})),meetupResponse.json().catch(()=>({})),groupResponse.json().catch(()=>({})),libraryResponse.json().catch(()=>({}))]);if(!feedResponse.ok)throw new Error(feedData.error||"Failed to load feed");setContent((feedData.items||[]).map((item:ContentItem)=>({id:item.id,source:item.source||"DadConnect",title:item.title,image:item.image||"/placeholder-vk2kx.png",excerpt:item.excerpt||"",readTime:`${item.readTime||5} min`,url:item.url,topics:item.topics||[]})));if(threadResponse.ok)setThreads(threadData.threads||[]);if(meetupResponse.ok)setMeetups((meetupData.meetups||[]).slice(0,4));if(groupResponse.ok)setGroups((groupData.items||[]).slice(0,5));if(libraryResponse.ok)setSavedCount((libraryData.items||[]).length)}catch(error){setError(error instanceof Error?error.message:"Failed to load DadConnect")}finally{setLoading(false)}})()},[])
   const currentCard=content[currentIndex]
-  const topics=useMemo(() => {
-    const counts=new Map<string,number>()
-    content.flatMap(item => item.topics).forEach(topic => counts.set(topic,(counts.get(topic) || 0)+1))
-    return [...counts.entries()].sort((a,b) => b[1]-a[1]).slice(0,6).map(([topic]) => topic)
-  },[content])
+  const topics=useMemo(()=>{const counts=new Map<string,number>();content.flatMap(item=>item.topics).forEach(topic=>counts.set(topic,(counts.get(topic)||0)+1));return [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([topic])=>topic)},[content])
+  const moveNext=()=>{if(content.length)setCurrentIndex(index=>index>=content.length-1?0:index+1)}
+  const save=async(id:string)=>{setError(null);try{const response=await fetch("/api/save",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({contentId:id})});if(response.status===401){window.location.href="/login";return}const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Failed to save item");setSavedIds(current=>{if(current.has(id))return current;const next=new Set(current);next.add(id);setSavedCount(count=>count+1);return next});moveNext()}catch(error){setError(error instanceof Error?error.message:"Failed to save item")}}
+  if(loading)return <div className="flex min-h-screen items-center justify-center bg-[#f4f1e9] font-semibold text-[#667187]">Getting the crew together…</div>
+  return <main className="min-h-screen bg-[#f4f1e9] text-[#10213d]">
+    <header className="sticky top-0 z-20 border-b-2 border-[#ded8cd] bg-[#f4f1e9]/95 backdrop-blur">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <Link href="/feed" className="flex items-center gap-3 font-black tracking-tight"><span className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-primary text-xs text-white shadow-[0_4px_0_#173b93]">DC</span><span className="hidden text-xl sm:block">DadConnect</span></Link>
+        <nav className="flex items-center gap-1 sm:gap-2"><Button variant="ghost" asChild><Link href="/groups">Groups</Link></Button><Button variant="ghost" asChild><Link href="/meetups">Meetups</Link></Button><Button variant="ghost" asChild><Link href="/discussions">Talk</Link></Button><Button variant="outline" className="rounded-full border-2 bg-white" asChild><Link href="/profile">Me</Link></Button></nav>
+      </div>
+    </header>
 
-  const moveNext=() => {
-    if(!content.length) return
-    setCurrentIndex(index => index >= content.length-1 ? 0 : index+1)
-  }
-
-  const save=async (id:string) => {
-    setError(null)
-    try{
-      const response=await fetch("/api/save",{
-        method:"POST",
-        credentials:"include",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({contentId:id}),
-      })
-      if(response.status === 401){
-        window.location.href="/login"
-        return
-      }
-      const data=await response.json().catch(() => ({}))
-      if(!response.ok) throw new Error(data.error || "Failed to save item")
-      setSavedIds(current => {
-        if(current.has(id)) return current
-        const next=new Set(current)
-        next.add(id)
-        setSavedCount(count => count+1)
-        return next
-      })
-      moveNext()
-    }catch(error){
-      setError(error instanceof Error ? error.message : "Failed to save item")
-    }
-  }
-
-  if(loading) return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-500">Loading DadConnect…</div>
-
-  return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-10 border-b bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <h1 className="text-2xl font-bold text-gray-900">DadConnect</h1>
-          <div className="flex gap-2">
-            <Button variant="ghost" asChild><Link href="/library"><BookmarkIcon className="mr-2 h-4 w-4" />{savedCount}</Link></Button>
-            <Button variant="outline" asChild><Link href="/profile">Profile</Link></Button>
-          </div>
+    <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10">
+      <section className="mb-8 grid gap-5 lg:grid-cols-[1fr_330px]">
+        <div className="relative overflow-hidden rounded-[30px] bg-[#10213d] p-7 text-white shadow-[0_9px_0_#d7d0c4] sm:p-9">
+          <div className="absolute -right-6 -top-8 h-32 w-32 rotate-12 rounded-[35px] bg-[#f5c85b] opacity-95"/><p className="text-xs font-black tracking-[.18em] text-[#f5c85b]">YOUR CREW</p><h1 className="relative mt-3 max-w-2xl text-4xl font-black tracking-[-.045em] sm:text-5xl">What&apos;s happening with the dads?</h1><p className="relative mt-3 max-w-xl leading-7 text-[#bdc8d8]">Catch up, make a plan, ask the question, or find something worth saving for later.</p><div className="relative mt-6 flex flex-wrap gap-3"><Button className="rounded-xl bg-[#f5c85b] font-black text-[#10213d] hover:bg-[#f5c85b]/90" asChild><Link href="/discussions">Start a conversation</Link></Button><Button variant="outline" className="rounded-xl border-[#53627a] bg-transparent text-white hover:bg-white/10 hover:text-white" asChild><Link href="/meetups">Make a plan</Link></Button></div>
         </div>
-      </header>
+        <div className="rounded-[28px] border-2 border-[#d9d2c5] bg-white p-6"><p className="text-xs font-black tracking-[.16em] text-primary">QUICK CHECK</p><div className="mt-4 grid grid-cols-2 gap-3"><Link href="/library" className="rounded-2xl bg-[#eef4ff] p-4"><BookmarkIcon className="h-5 w-5 text-primary"/><strong className="mt-3 block text-2xl">{savedCount}</strong><span className="text-xs font-bold text-[#697386]">Saved</span></Link><Link href="/meetups" className="rounded-2xl bg-[#fff6d9] p-4"><CalendarDaysIcon className="h-5 w-5 text-[#a87b09]"/><strong className="mt-3 block text-2xl">{meetups.length}</strong><span className="text-xs font-bold text-[#697386]">Coming up</span></Link></div><Link href="/profile" className="mt-4 flex items-center justify-between rounded-xl border-2 border-[#e2ddd4] px-4 py-3 text-sm font-black">Your DadConnect profile <ArrowRightIcon className="h-4 w-4"/></Link></div>
+      </section>
 
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[260px_minmax(0,1fr)_300px]">
-        <aside className="space-y-5">
-          <Card className="p-4">
-            <div className="mb-3 flex items-center gap-2"><MessageSquareIcon className="h-5 w-5 text-blue-600" /><h2 className="font-semibold">Recent discussions</h2></div>
-            <div className="space-y-3">
-              {threads.length ? threads.map(thread => <Link key={thread.id} href="/discussions" className="block rounded-lg border p-3 hover:bg-gray-50"><strong className="line-clamp-2 text-sm">{thread.title}</strong><span className="mt-1 block text-xs text-gray-500">{thread.group?.name || "Group discussion"}</span></Link>) : <p className="text-sm text-gray-500">No discussions yet.</p>}
-            </div>
-            <Link href="/discussions" className="mt-3 block text-sm font-medium text-blue-600">View discussions →</Link>
-          </Card>
+      {error&&<div role="alert" className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">{error}</div>}
 
-          <Card className="p-4">
-            <h2 className="font-semibold">Feed topics</h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {topics.length ? topics.map(topic => <span key={topic} className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-700">{topic}</span>) : <span className="text-sm text-gray-500">Topics will appear as content is added.</span>}
-            </div>
-          </Card>
-        </aside>
+      <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_350px]">
+        <section className="space-y-7">
+          <div className="rounded-[28px] border-2 border-[#d9d2c5] bg-white p-5 sm:p-7"><div className="mb-5 flex items-end justify-between"><div><p className="text-xs font-black tracking-[.16em] text-primary">THE CREW BOARD</p><h2 className="mt-1 text-2xl font-black tracking-tight">Conversations worth jumping into</h2></div><Link href="/discussions" className="hidden text-sm font-black text-primary sm:block">See all →</Link></div><div className="space-y-3">{threads.length?threads.map((thread,index)=><Link key={thread.id} href="/discussions" className={`block rounded-2xl border-2 p-4 transition hover:-translate-y-0.5 ${index===0?"border-[#e4c35e] bg-[#fff8df]":"border-[#e2e5e9] bg-[#fafbfc]"}`}><div className="flex gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#10213d] text-sm">👨</span><div><strong className="line-clamp-2 block">{thread.title}</strong><span className="mt-1 block text-xs font-semibold text-[#778196]">{thread.group?.name||"DadConnect discussion"}</span></div></div></Link>):<div className="rounded-2xl border-2 border-dashed border-[#d9d2c5] p-7 text-center"><MessageSquareIcon className="mx-auto h-7 w-7 text-primary"/><strong className="mt-3 block">Quiet board right now.</strong><p className="mt-1 text-sm text-[#697386]">Be the dad who starts the conversation.</p><Button className="mt-4 rounded-xl" asChild><Link href="/discussions">Start talking</Link></Button></div>}</div></div>
 
-        <section>
-          <div className="mb-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-900">Your feed</h2>
-            <p className="mt-2 text-gray-600">Useful reading plus what is happening in your DadConnect communities.</p>
-          </div>
-
-          {error && <div role="alert" className="mb-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
-
-          {currentCard ? (
-            <>
-              <div className="mx-auto max-w-sm">
-                <ContentCard {...currentCard} saved={savedIds.has(currentCard.id)} onSave={save} onSkip={() => moveNext()} onTap={() => setSelectedArticle(currentCard)} />
-              </div>
-              <div className="mt-4 text-center text-sm text-gray-500">Item {currentIndex+1} of {content.length}</div>
-            </>
-          ) : (
-            <Card className="p-10 text-center">
-              <h3 className="text-lg font-semibold text-gray-900">No reading items yet</h3>
-              <p className="mt-2 text-sm text-gray-600">The content catalog is empty, but the community areas below are live.</p>
-              <div className="mt-5 flex flex-wrap justify-center gap-3">
-                <Button asChild><Link href="/discussions">Discussions</Link></Button>
-                <Button variant="outline" asChild><Link href="/groups">Groups</Link></Button>
-                <Button variant="outline" asChild><Link href="/meetups">Meetups</Link></Button>
-              </div>
-            </Card>
-          )}
-
-          <section className="mt-8">
-            <div className="mb-3 flex items-center gap-2"><CalendarDaysIcon className="h-5 w-5 text-emerald-600" /><h2 className="text-lg font-semibold">Upcoming meetups</h2></div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {meetups.length ? meetups.map(meetup => <Link key={meetup.id} href={`/meetups/${meetup.id}`} className="rounded-xl bg-white p-4 shadow-sm hover:bg-gray-50"><strong className="block">{meetup.title}</strong><span className="mt-1 block text-xs text-gray-500">{new Date(meetup.startTime).toLocaleString()} · {meetup.currentAttendees} going</span></Link>) : <p className="text-sm text-gray-500">No upcoming meetups yet.</p>}
-            </div>
-          </section>
+          <div><div className="mb-4 flex items-end justify-between"><div><p className="text-xs font-black tracking-[.16em] text-primary">WORTH A LOOK</p><h2 className="mt-1 text-2xl font-black">Something useful for dad life</h2></div>{topics.length>0&&<div className="hidden flex-wrap justify-end gap-1 md:flex">{topics.slice(0,3).map(topic=><span key={topic} className="rounded-full bg-[#e9effa] px-2 py-1 text-xs font-bold text-primary">{topic}</span>)}</div>}</div>{currentCard?<div className="max-w-md"><ContentCard {...currentCard} saved={savedIds.has(currentCard.id)} onSave={save} onSkip={moveNext} onTap={()=>setSelectedArticle(currentCard)}/><p className="mt-3 text-center text-xs font-bold text-[#7b8494]">{currentIndex+1} of {content.length} • save it or keep moving</p></div>:<div className="rounded-[26px] border-2 border-dashed border-[#d5cec2] bg-white/60 p-8"><strong>No reading cards yet.</strong><p className="mt-1 text-sm text-[#697386]">That&apos;s okay — DadConnect still works as a community without filler content.</p></div>}</div>
         </section>
 
-        <aside className="space-y-5">
-          <Card className="p-4">
-            <div className="mb-3 flex items-center gap-2"><UsersIcon className="h-5 w-5 text-blue-600" /><h2 className="font-semibold">Suggested groups</h2></div>
-            <div className="space-y-3">
-              {groups.length ? groups.map(group => <div key={group.id} className="rounded-lg border p-3"><strong className="block text-sm">{group.name}</strong><span className="mt-1 block text-xs text-gray-500">{group.memberCount} members · {group.topics.slice(0,2).join(", ") || "community"}</span></div>) : <p className="text-sm text-gray-500">No groups yet.</p>}
-            </div>
-            <Button variant="outline" className="mt-4 w-full" asChild><Link href="/groups">Explore groups</Link></Button>
-          </Card>
-
-          <Card className="p-4">
-            <h2 className="font-semibold">Your activity</h2>
-            <div className="mt-3 flex items-center justify-between text-sm"><span className="text-gray-600">Saved items</span><strong>{savedCount}</strong></div>
-            <p className="mt-3 text-xs text-gray-500">Activity numbers come from your account data, not demo counters.</p>
-          </Card>
+        <aside className="space-y-6">
+          <div className="rounded-[28px] border-2 border-[#d9d2c5] bg-white p-5"><div className="mb-4 flex items-center gap-2"><CalendarDaysIcon className="h-5 w-5 text-[#a87b09]"/><h2 className="font-black">Plans on the calendar</h2></div><div className="space-y-3">{meetups.length?meetups.map(meetup=><Link key={meetup.id} href={`/meetups/${meetup.id}`} className="block rounded-2xl bg-[#fff8df] p-4"><strong className="block">{meetup.title}</strong><span className="mt-1 block text-xs font-semibold text-[#697386]">{new Date(meetup.startTime).toLocaleString()} • {meetup.currentAttendees} going</span></Link>):<div className="rounded-2xl bg-[#faf8f3] p-4 text-sm text-[#697386]">Nothing planned yet. Somebody has to be first.</div>}</div><Button variant="outline" className="mt-4 w-full rounded-xl border-2 font-black" asChild><Link href="/meetups">See meetups</Link></Button></div>
+          <div className="rounded-[28px] border-2 border-[#d9d2c5] bg-white p-5"><div className="mb-4 flex items-center gap-2"><UsersIcon className="h-5 w-5 text-primary"/><h2 className="font-black">Crews you might fit</h2></div><div className="space-y-3">{groups.length?groups.map(group=><div key={group.id} className="rounded-2xl border-2 border-[#e6e2da] p-4"><strong className="block">{group.name}</strong><span className="mt-1 block text-xs font-semibold text-[#778196]">{group.memberCount} dads • {group.topics.slice(0,2).join(" • ")||"community"}</span></div>):<p className="rounded-2xl bg-[#faf8f3] p-4 text-sm text-[#697386]">No suggestions yet. Explore and start shaping your crew.</p>}</div><Button className="mt-4 w-full rounded-xl font-black shadow-[0_3px_0_#173b93]" asChild><Link href="/groups">Explore groups</Link></Button></div>
+          <div className="rotate-[1deg] rounded-[24px] bg-[#a8d8c6] p-5"><p className="text-xs font-black tracking-[.14em]">DADCONNECT RULE</p><p className="mt-2 text-lg font-black leading-6">You don&apos;t have to have the answer to be useful. Sometimes showing up is the whole thing.</p></div>
         </aside>
       </div>
-
-      <ArticleModal isOpen={Boolean(selectedArticle)} onClose={() => setSelectedArticle(null)} article={selectedArticle} />
-    </main>
-  )
+    </div>
+    <ArticleModal isOpen={Boolean(selectedArticle)} onClose={()=>setSelectedArticle(null)} article={selectedArticle}/>
+  </main>
 }
