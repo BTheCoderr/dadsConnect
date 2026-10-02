@@ -1,164 +1,34 @@
 "use client"
 
 import { useEffect,useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Card,CardContent,CardDescription,CardHeader,CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar,AvatarFallback,AvatarImage } from "@/components/ui/avatar"
-import { PencilIcon,LogOutIcon,SaveIcon,XIcon } from "lucide-react"
+import { ArrowLeftIcon,CalendarDaysIcon,LogOutIcon,MessageSquareIcon,PencilIcon,SaveIcon,UsersIcon,XIcon } from "lucide-react"
 import { getSupabaseBrowserClient } from "@/lib/supabase-client"
 import type { Tables } from "@dadsconnect/shared"
 
-type PublicProfile=Tables<"profiles">
-type PrivateProfile=Tables<"profile_private">
-
+type PublicProfile=Tables<"profiles">;type PrivateProfile=Tables<"profile_private">
 export default function ProfilePage(){
-  const router=useRouter()
-  const [profile,setProfile]=useState<PublicProfile | null>(null)
-  const [privateProfile,setPrivateProfile]=useState<PrivateProfile | null>(null)
-  const [stats,setStats]=useState({groups:0,meetups:0,discussions:0})
-  const [editing,setEditing]=useState(false)
-  const [name,setName]=useState("")
-  const [bio,setBio]=useState("")
-  const [loading,setLoading]=useState(true)
-  const [saving,setSaving]=useState(false)
-  const [error,setError]=useState<string | null>(null)
-
-  const load=async () => {
-    const supabase=getSupabaseBrowserClient()
-    const {data:{user}}=await supabase.auth.getUser()
-    if(!user){
-      router.replace("/login")
-      return
-    }
-
-    const [profileResult,privateResult,groupsResult,meetupsResult,threadsResult]=await Promise.all([
-      supabase.from("profiles").select("*").eq("id",user.id).maybeSingle(),
-      supabase.from("profile_private").select("*").eq("user_id",user.id).maybeSingle(),
-      supabase.from("group_members").select("*",{count:"exact",head:true}).eq("user_id",user.id),
-      supabase.from("meetup_attendees").select("*",{count:"exact",head:true}).eq("user_id",user.id),
-      supabase.from("threads").select("*",{count:"exact",head:true}).eq("author_id",user.id),
-    ])
-
-    if(profileResult.error || privateResult.error){
-      setError(profileResult.error?.message || privateResult.error?.message || "Failed to load profile")
-    }
-
-    setProfile(profileResult.data)
-    setPrivateProfile(privateResult.data)
-    setName(profileResult.data?.name || "")
-    setBio(profileResult.data?.bio || "")
-    setStats({
-      groups:groupsResult.count || 0,
-      meetups:meetupsResult.count || 0,
-      discussions:threadsResult.count || 0,
-    })
-    setLoading(false)
-  }
-
-  useEffect(() => { void load() },[])
-
-  const saveIdentity=async () => {
-    if(!profile) return
-    const trimmedName=name.trim()
-    if(trimmedName.length < 2){
-      setError("Name must be at least 2 characters.")
-      return
-    }
-
-    setSaving(true)
-    setError(null)
-    const supabase=getSupabaseBrowserClient()
-    const {data,error:updateError}=await supabase
-      .from("profiles")
-      .update({
-        name:trimmedName.slice(0,120),
-        bio:bio.trim().slice(0,500) || null,
-      })
-      .eq("id",profile.id)
-      .select("*")
-      .single()
-
-    if(updateError){
-      setError(updateError.message)
-      setSaving(false)
-      return
-    }
-
-    setProfile(data)
-    setName(data.name)
-    setBio(data.bio || "")
-    setEditing(false)
-    setSaving(false)
-  }
-
-  const logout=async () => {
-    const supabase=getSupabaseBrowserClient()
-    await supabase.auth.signOut()
-    router.replace("/login")
-    router.refresh()
-  }
-
-  if(loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading profile…</div>
-
-  if(!profile){
-    return <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4"><p>{error || "Your profile is not available yet."}</p><Button onClick={() => router.push("/onboarding")}>Finish setup</Button></div>
-  }
-
-  const initials=profile.name.split(" ").map(part => part[0]).join("").slice(0,2).toUpperCase()
-  const location=privateProfile?.city
-    ? `${privateProfile.city}${privateProfile.state ? `, ${privateProfile.state}` : ""}`
-    : "Not added"
-
-  return (
-    <main className="min-h-screen bg-gray-100 p-4 py-10 dark:bg-gray-950">
-      <div className="mx-auto max-w-2xl space-y-5">
-        <Card>
-          <CardHeader className="flex flex-col items-center space-y-4">
-            <Avatar className="h-24 w-24">
-              {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt="" />}
-              <AvatarFallback>{initials || "DC"}</AvatarFallback>
-            </Avatar>
-            {editing ? (
-              <div className="w-full space-y-4">
-                <div className="space-y-2"><Label htmlFor="profile-name">Name</Label><Input id="profile-name" value={name} onChange={event => setName(event.target.value)} maxLength={120} /></div>
-                <div className="space-y-2"><Label htmlFor="profile-bio">Bio</Label><textarea id="profile-bio" value={bio} onChange={event => setBio(event.target.value)} maxLength={500} rows={4} className="w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="A little about you, your interests, or the kind of dad community you're looking for." /></div>
-                <div className="flex gap-2">
-                  <Button className="flex-1" onClick={saveIdentity} disabled={saving}><SaveIcon className="mr-2 h-4 w-4" />{saving ? "Saving…" : "Save"}</Button>
-                  <Button variant="outline" className="flex-1" onClick={() => {setEditing(false);setName(profile.name);setBio(profile.bio || "")}}><XIcon className="mr-2 h-4 w-4" />Cancel</Button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <CardTitle className="text-2xl font-bold">{profile.name}</CardTitle>
-                <CardDescription className="max-w-lg text-center">{profile.bio || "DadConnect member"}</CardDescription>
-                <Button variant="outline" onClick={() => setEditing(true)}><PencilIcon className="mr-2 h-4 w-4" />Edit public profile</Button>
-              </>
-            )}
-          </CardHeader>
-        </Card>
-
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            ["Groups",stats.groups],["Meetups",stats.meetups],["Discussions",stats.discussions],
-          ].map(([label,value]) => <Card key={label} className="p-4 text-center"><strong className="block text-2xl">{value}</strong><span className="text-xs text-muted-foreground">{label}</span></Card>)}
-        </div>
-
-        <Card>
-          <CardHeader><CardTitle>Private preferences</CardTitle><CardDescription>These fields are stored in your self-only profile record and are not part of member profile cards.</CardDescription></CardHeader>
-          <CardContent className="space-y-5">
-            <section><h3 className="font-semibold">Family stage</h3><p className="text-sm text-muted-foreground">{privateProfile?.kids_ages.length ? privateProfile.kids_ages.join(", ") : "Not added yet"}</p></section>
-            <section><h3 className="font-semibold">Interests</h3><div className="mt-2 flex flex-wrap gap-2">{profile.interests.length ? profile.interests.map(item => <span key={item} className="rounded-full bg-muted px-3 py-1 text-xs">{item}</span>) : <span className="text-sm text-muted-foreground">Not added yet</span>}</div></section>
-            <section><h3 className="font-semibold">Location</h3><p className="text-sm text-muted-foreground">{location}{privateProfile?.city ? (privateProfile.city_opt_in ? " · enabled for local discovery" : " · saved privately") : ""}</p></section>
-            <Button className="w-full" onClick={() => router.push("/onboarding")}><PencilIcon className="mr-2 h-4 w-4" />Edit family, interests & discovery</Button>
-          </CardContent>
-        </Card>
-
-        {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-        <Button variant="outline" className="w-full bg-transparent" onClick={logout}><LogOutIcon className="mr-2 h-4 w-4" />Sign out</Button>
-      </div>
-    </main>
-  )
+ const router=useRouter();const [profile,setProfile]=useState<PublicProfile|null>(null);const [privateProfile,setPrivateProfile]=useState<PrivateProfile|null>(null);const [stats,setStats]=useState({groups:0,meetups:0,discussions:0});const [editing,setEditing]=useState(false);const [name,setName]=useState('');const [bio,setBio]=useState('');const [loading,setLoading]=useState(true);const [saving,setSaving]=useState(false);const [error,setError]=useState<string|null>(null)
+ const load=async()=>{const supabase=getSupabaseBrowserClient();const {data:{user}}=await supabase.auth.getUser();if(!user){router.replace('/login');return}const [profileResult,privateResult,groupsResult,meetupsResult,threadsResult]=await Promise.all([supabase.from('profiles').select('*').eq('id',user.id).maybeSingle(),supabase.from('profile_private').select('*').eq('user_id',user.id).maybeSingle(),supabase.from('group_members').select('*',{count:'exact',head:true}).eq('user_id',user.id),supabase.from('meetup_attendees').select('*',{count:'exact',head:true}).eq('user_id',user.id),supabase.from('threads').select('*',{count:'exact',head:true}).eq('author_id',user.id)]);if(profileResult.error||privateResult.error)setError(profileResult.error?.message||privateResult.error?.message||'Failed to load profile');setProfile(profileResult.data);setPrivateProfile(privateResult.data);setName(profileResult.data?.name||'');setBio(profileResult.data?.bio||'');setStats({groups:groupsResult.count||0,meetups:meetupsResult.count||0,discussions:threadsResult.count||0});setLoading(false)}
+ useEffect(()=>{void load()},[])
+ const saveIdentity=async()=>{if(!profile)return;const trimmedName=name.trim();if(trimmedName.length<2){setError('Name must be at least 2 characters.');return}setSaving(true);setError(null);const supabase=getSupabaseBrowserClient();const {data,error:updateError}=await supabase.from('profiles').update({name:trimmedName.slice(0,120),bio:bio.trim().slice(0,500)||null}).eq('id',profile.id).select('*').single();if(updateError){setError(updateError.message);setSaving(false);return}setProfile(data);setName(data.name);setBio(data.bio||'');setEditing(false);setSaving(false)}
+ const logout=async()=>{const supabase=getSupabaseBrowserClient();await supabase.auth.signOut();router.replace('/login');router.refresh()}
+ if(loading)return <div className="flex min-h-screen items-center justify-center bg-[#f4f1e9] font-semibold text-[#667187]">Pulling up your DadConnect profile…</div>
+ if(!profile)return <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#f4f1e9] p-4 text-[#10213d]"><p>{error||'Your profile is not available yet.'}</p><Button onClick={()=>router.push('/onboarding')}>Finish setup</Button></div>
+ const initials=profile.name.split(' ').map(part=>part[0]).join('').slice(0,2).toUpperCase();const location=privateProfile?.city?`${privateProfile.city}${privateProfile.state?`, ${privateProfile.state}`:''}`:'Not added';const stage=privateProfile?.kids_ages.length?privateProfile.kids_ages.join(', '):'Add your family stage'
+ return <main className="min-h-screen bg-[#f4f1e9] px-4 py-7 text-[#10213d]"><div className="mx-auto max-w-4xl">
+  <Link href="/feed" className="mb-7 inline-flex items-center gap-2 text-sm font-black text-[#667187]"><ArrowLeftIcon className="h-4 w-4"/>Crew hub</Link>
+  <section className="relative overflow-hidden rounded-[32px] bg-[#10213d] p-6 text-white shadow-[0_9px_0_#d7d0c4] sm:p-9"><div className="absolute -right-8 -top-10 h-40 w-40 rotate-12 rounded-[42px] bg-[#a8d8c6]"/><div className="relative flex flex-col gap-5 sm:flex-row sm:items-center"><Avatar className="h-24 w-24 border-4 border-white/20"><AvatarImage src={profile.avatar_url||undefined} alt=""/><AvatarFallback className="bg-[#f5c85b] text-2xl font-black text-[#10213d]">{initials||'DC'}</AvatarFallback></Avatar><div className="min-w-0 flex-1"><p className="text-xs font-black tracking-[.16em] text-[#f5c85b]">YOUR DADCONNECT</p><h1 className="mt-1 text-4xl font-black tracking-[-.04em]">{profile.name}</h1><p className="mt-2 max-w-xl leading-7 text-[#bdc8d8]">{profile.bio||'A dad building his crew one useful conversation at a time.'}</p></div>{!editing&&<button onClick={()=>setEditing(true)} className="relative inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#53627a] px-4 py-3 text-sm font-black"><PencilIcon className="h-4 w-4"/>Edit profile</button>}</div></section>
+  <section className="mt-5 grid grid-cols-3 gap-3">{[[UsersIcon,'Crews',stats.groups],[CalendarDaysIcon,'Plans',stats.meetups],[MessageSquareIcon,'Questions',stats.discussions]].map(([Icon,label,value])=><div key={String(label)} className="rounded-2xl border-2 border-[#ddd6ca] bg-white p-4 text-center"><Icon className="mx-auto h-5 w-5 text-primary"/><strong className="mt-2 block text-2xl">{String(value)}</strong><span className="text-[11px] font-black uppercase tracking-wide text-[#778196]">{String(label)}</span></div>)}</section>
+  {editing&&<section className="mt-5 rounded-[28px] border-2 border-[#d9d2c5] bg-white p-5 sm:p-7"><p className="text-xs font-black tracking-[.16em] text-primary">THE PUBLIC YOU</p><h2 className="mt-1 text-2xl font-black">Keep it useful, not performative.</h2><div className="mt-5 space-y-4"><div><Label htmlFor="profile-name" className="font-black">Name</Label><Input id="profile-name" value={name} onChange={event=>setName(event.target.value)} maxLength={120} className="mt-2 h-12 rounded-xl bg-[#fbfaf7]"/></div><div><Label htmlFor="profile-bio" className="font-black">A little context</Label><textarea id="profile-bio" value={bio} onChange={event=>setBio(event.target.value)} maxLength={500} rows={4} className="mt-2 w-full rounded-2xl border-2 border-[#ddd8cf] bg-[#fbfaf7] px-4 py-3 text-sm" placeholder="What are you into, what season are you in, or what kind of crew are you looking for?"/></div><div className="flex gap-2"><Button className="flex-1 rounded-xl font-black" onClick={saveIdentity} disabled={saving}><SaveIcon className="mr-2 h-4 w-4"/>{saving?'Saving…':'Save it'}</Button><Button variant="outline" className="flex-1 rounded-xl border-2 font-black" onClick={()=>{setEditing(false);setName(profile.name);setBio(profile.bio||'')}}><XIcon className="mr-2 h-4 w-4"/>Cancel</Button></div></div></section>}
+  <div className="mt-5 grid gap-5 md:grid-cols-[1.1fr_.9fr]"><section className="rounded-[28px] border-2 border-[#d9d2c5] bg-white p-5 sm:p-7"><p className="text-xs font-black tracking-[.16em] text-primary">WHAT SHAPES YOUR CREW</p><h2 className="mt-1 text-2xl font-black">Your dad-life context</h2><div className="mt-6 space-y-6"><div><span className="text-xs font-black text-[#778196]">FAMILY STAGE</span><p className="mt-1 font-bold">{stage}</p></div><div><span className="text-xs font-black text-[#778196]">INTERESTS</span><div className="mt-2 flex flex-wrap gap-2">{profile.interests.length?profile.interests.map(item=><span key={item} className="rounded-full bg-[#eef4ff] px-3 py-1.5 text-xs font-black text-primary">{item}</span>):<span className="text-sm text-[#667187]">Nothing picked yet.</span>}</div></div><div><span className="text-xs font-black text-[#778196]">LOCAL DISCOVERY</span><p className="mt-1 text-sm font-semibold text-[#667187]">{location}{privateProfile?.city?(privateProfile.city_opt_in?' · helping find nearby crews':' · kept private'):''}</p></div></div><Button className="mt-6 w-full rounded-xl font-black shadow-[0_3px_0_#173b93]" onClick={()=>router.push('/onboarding')}><PencilIcon className="mr-2 h-4 w-4"/>Tune my crew matching</Button></section>
+  <aside className="space-y-5"><div className="rounded-[26px] bg-[#fff0c8] p-6"><p className="text-xs font-black tracking-[.14em]">NOT A FOLLOWER CONTEST</p><p className="mt-2 text-xl font-black leading-7">Your profile exists to help the right dads recognize common ground.</p></div><div className="rounded-[26px] bg-[#a8d8c6] p-6"><p className="text-xs font-black tracking-[.14em]">PRIVATE STAYS PRIVATE</p><p className="mt-2 font-bold leading-6">Family-stage and discovery settings help DadConnect work. They do not need to become a public biography.</p></div></aside></div>
+  {error&&<p role="alert" className="mt-5 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}
+  <button onClick={logout} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#d3ccc0] bg-white px-4 py-3 font-black text-[#5f6b7d]"><LogOutIcon className="h-4 w-4"/>Sign out</button>
+ </div></main>
 }
