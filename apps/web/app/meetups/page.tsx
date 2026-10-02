@@ -3,124 +3,26 @@
 import { useEffect,useMemo,useState } from 'react'
 import Link from 'next/link'
 import type { Meetup,MeetupAttendee } from '@dadsconnect/shared'
+import { ArrowLeftIcon,CalendarDaysIcon,MapPinIcon,PlusIcon,UsersIcon } from 'lucide-react'
 
-const filters=[
-  ['all','All meetups'],['watch_party','Watch parties'],['outdoor','Outdoor'],
-  ['sports','Sports'],['coffee','Coffee'],['playdate','Playdates'],['other','Other'],
-] as const
-
-const labels:Record<Meetup['activityType'],string>={
-  watch_party:'Watch party',outdoor:'Outdoor',sports:'Sports',coffee:'Coffee',playdate:'Playdate',other:'Other',
-}
+const filters=[['all','All plans','👊'],['watch_party','Watch parties','📺'],['outdoor','Outdoor','🌲'],['sports','Sports','🏀'],['coffee','Coffee','☕'],['playdate','Playdates','🛝'],['other','Other','✨']] as const
+const labels:Record<Meetup['activityType'],string>={watch_party:'Watch party',outdoor:'Outdoor',sports:'Sports',coffee:'Coffee',playdate:'Playdate',other:'Other'}
+const emoji:Record<Meetup['activityType'],string>={watch_party:'📺',outdoor:'🌲',sports:'🏀',coffee:'☕',playdate:'🛝',other:'👊'}
 
 export default function MeetupsPage(){
-  const [meetups,setMeetups]=useState<Meetup[]>([])
-  const [filter,setFilter]=useState('all')
-  const [loading,setLoading]=useState(true)
-  const [error,setError]=useState<string | null>(null)
-  const [saving,setSaving]=useState<string | null>(null)
-
-  const loadMeetups=async () => {
-    setError(null)
-    try{
-      const response=await fetch('/api/meetups',{credentials:'include'})
-      if(response.status === 401){
-        window.location.href='/login'
-        return
-      }
-      const data=await response.json()
-      if(!response.ok) throw new Error(data.error || 'Failed to load meetups')
-      setMeetups(data.meetups || [])
-    }catch(error){
-      setError(error instanceof Error ? error.message : 'Failed to load meetups')
-    }finally{
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { void loadMeetups() },[])
-
-  const setRsvp=async (meetupId:string,status:MeetupAttendee['status']) => {
-    setSaving(meetupId)
-    setError(null)
-    try{
-      const response=await fetch(`/api/meetups/${meetupId}/attend`,{
-        method:'POST',
-        credentials:'include',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({status}),
-      })
-      const data=await response.json().catch(() => ({}))
-      if(!response.ok) throw new Error(data.error || 'Failed to update RSVP')
-      setMeetups(current => current.map(meetup => meetup.id === meetupId ? {
-        ...meetup,
-        userRsvp:status,
-        currentAttendees:data.currentAttendees ?? meetup.currentAttendees,
-      } : meetup))
-    }catch(error){
-      setError(error instanceof Error ? error.message : 'Failed to update RSVP')
-    }finally{
-      setSaving(null)
-    }
-  }
-
-  const filtered=useMemo(
-    () => filter === 'all' ? meetups : meetups.filter(meetup => meetup.activityType === filter),
-    [filter,meetups],
-  )
-
-  if(loading) return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">Loading meetups…</div>
-
-  return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div><h1 className="text-3xl font-bold text-gray-900">Dad meetups</h1><p className="mt-2 text-gray-600">Turn an online connection into something real.</p></div>
-          <Link href="/meetups/create" className="rounded-lg bg-blue-600 px-6 py-3 text-center font-semibold text-white hover:bg-blue-700">Create meetup</Link>
-        </div>
-
-        <div className="mb-8 flex gap-1 overflow-x-auto rounded-lg bg-white p-1 shadow-sm">
-          {filters.map(([key,label]) => <button key={key} onClick={() => setFilter(key)}
-            className={`whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium ${filter === key ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>{label}</button>)}
-        </div>
-
-        {error && <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(meetup => {
-            const full=meetup.maxAttendees !== null && meetup.maxAttendees !== undefined && meetup.currentAttendees >= meetup.maxAttendees
-            return (
-              <article key={meetup.id} className="rounded-xl bg-white p-6 shadow-lg">
-                <div className="mb-4 flex items-start justify-between gap-4">
-                  <div><span className="text-xs font-semibold uppercase tracking-wide text-blue-600">{labels[meetup.activityType]}</span><h2 className="mt-1 text-xl font-semibold text-gray-900">{meetup.title}</h2></div>
-                  <div className="text-right"><strong className="block text-2xl text-emerald-600">{meetup.currentAttendees}</strong><span className="text-xs text-gray-500">{meetup.maxAttendees ? `of ${meetup.maxAttendees} going` : 'going'}</span></div>
-                </div>
-                <p className="mb-4 line-clamp-3 text-gray-600">{meetup.description || 'No description yet.'}</p>
-                <div className="mb-5 space-y-1 text-sm text-gray-600">
-                  <p>🗓 {new Date(meetup.startTime).toLocaleString()}</p>
-                  {(meetup.location || meetup.city) && <p>📍 {[meetup.location,meetup.city,meetup.state].filter(Boolean).join(' · ')}</p>}
-                  {meetup.creator && <p>Hosted by {meetup.creator.name}</p>}
-                </div>
-                <div className="mb-3 grid grid-cols-3 gap-2">
-                  {([
-                    ['going','Going'],['maybe','Maybe'],['not_going',"Can't go"],
-                  ] as [MeetupAttendee['status'],string][]).map(([status,label]) => (
-                    <button key={status} onClick={() => setRsvp(meetup.id,status)}
-                      disabled={saving === meetup.id || (status === 'going' && full && meetup.userRsvp !== 'going')}
-                      className={`rounded-lg border px-2 py-2 text-sm font-medium disabled:opacity-40 ${meetup.userRsvp === status ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 bg-white text-gray-700'}`}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                {full && meetup.userRsvp !== 'going' && <p className="mb-3 text-xs text-amber-700">This meetup is currently full.</p>}
-                <Link href={`/meetups/${meetup.id}`} className="block rounded-lg bg-gray-900 px-4 py-2 text-center font-medium text-white">View details</Link>
-              </article>
-            )
-          })}
-        </div>
-
-        {!filtered.length && <div className="py-16 text-center"><h2 className="text-lg font-semibold">No meetups yet</h2><p className="mt-2 text-gray-600">Create one around an activity, group, or neighborhood.</p></div>}
-      </div>
-    </main>
-  )
+ const [meetups,setMeetups]=useState<Meetup[]>([]);const [filter,setFilter]=useState('all');const [loading,setLoading]=useState(true);const [error,setError]=useState<string|null>(null);const [saving,setSaving]=useState<string|null>(null)
+ const loadMeetups=async()=>{setError(null);try{const response=await fetch('/api/meetups',{credentials:'include'});if(response.status===401){window.location.href='/login';return}const data=await response.json();if(!response.ok)throw new Error(data.error||'Failed to load plans');setMeetups(data.meetups||[])}catch(error){setError(error instanceof Error?error.message:'Failed to load plans')}finally{setLoading(false)}}
+ useEffect(()=>{void loadMeetups()},[])
+ const setRsvp=async(meetupId:string,status:MeetupAttendee['status'])=>{setSaving(meetupId);setError(null);try{const response=await fetch(`/api/meetups/${meetupId}/attend`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Failed to update RSVP');setMeetups(current=>current.map(meetup=>meetup.id===meetupId?{...meetup,userRsvp:status,currentAttendees:data.currentAttendees??meetup.currentAttendees}:meetup))}catch(error){setError(error instanceof Error?error.message:'Failed to update RSVP')}finally{setSaving(null)}}
+ const filtered=useMemo(()=>filter==='all'?meetups:meetups.filter(meetup=>meetup.activityType===filter),[filter,meetups]);const going=meetups.filter(m=>m.userRsvp==='going').length;const maybe=meetups.filter(m=>m.userRsvp==='maybe').length
+ if(loading)return <div className="flex min-h-screen items-center justify-center bg-[#f4f1e9] font-semibold text-[#667187]">Finding the plans…</div>
+ return <main className="min-h-screen bg-[#f4f1e9] text-[#10213d]"><div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10">
+  <Link href="/feed" className="mb-7 inline-flex items-center gap-2 text-sm font-black text-[#667187] hover:text-primary"><ArrowLeftIcon className="h-4 w-4"/>Back to DadConnect</Link>
+  <section className="relative mb-7 overflow-hidden rounded-[32px] bg-[#10213d] p-7 text-white shadow-[0_9px_0_#d7d0c4] sm:p-10"><div className="absolute -right-7 -top-10 h-40 w-40 rotate-12 rounded-[42px] bg-[#a8d8c6]"/><p className="relative text-xs font-black tracking-[.18em] text-[#f5c85b]">GET OFF THE GROUP CHAT</p><h1 className="relative mt-3 max-w-2xl text-4xl font-black tracking-[-.045em] sm:text-5xl">Make the “we should” actually happen.</h1><p className="relative mt-4 max-w-2xl text-lg leading-8 text-[#bdc8d8]">Coffee. A game. The park. A watch party. Keep it simple, pick a time, and give the crew somewhere to show up.</p><Link href="/meetups/create" className="relative mt-7 inline-flex items-center gap-2 rounded-xl bg-[#f5c85b] px-5 py-3 font-black text-[#10213d] shadow-[0_4px_0_#bd922d]"><PlusIcon className="h-4 w-4"/>Make a plan</Link></section>
+  <section className="mb-7 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border-2 border-[#ddd6ca] bg-white p-4"><span className="text-xs font-black text-[#778196]">YOU'RE GOING</span><strong className="mt-1 block text-3xl">{going}</strong></div><div className="rounded-2xl border-2 border-[#ddd6ca] bg-white p-4"><span className="text-xs font-black text-[#778196]">MAYBE</span><strong className="mt-1 block text-3xl">{maybe}</strong></div><div className="rounded-2xl bg-[#fff0c8] p-4"><span className="text-xs font-black">DADCONNECT RULE</span><strong className="mt-1 block text-lg leading-6">Low pressure. Real plans. Show up when you can.</strong></div></section>
+  <div className="mb-8 flex gap-2 overflow-x-auto pb-2">{filters.map(([key,label,icon])=><button key={key} onClick={()=>setFilter(key)} className={`whitespace-nowrap rounded-full border-2 px-4 py-2 text-sm font-black ${filter===key?'border-[#10213d] bg-[#10213d] text-white':'border-[#d7d1c6] bg-white text-[#5d687b]'}`}>{icon} {label}</button>)}</div>
+  {error&&<div role="alert" className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>}
+  <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{filtered.map((meetup,index)=>{const full=meetup.maxAttendees!=null&&meetup.currentAttendees>=meetup.maxAttendees;return <article key={meetup.id} className={`flex min-h-[360px] flex-col rounded-[28px] border-2 border-[#d9d2c5] p-6 shadow-[0_6px_0_rgba(16,33,61,.06)] ${index%4===1?'bg-[#fff8df]':'bg-white'}`}><div className="flex items-start justify-between"><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef4ff] text-2xl">{emoji[meetup.activityType]}</span><div className="text-right"><strong className="block text-2xl">{meetup.currentAttendees}</strong><span className="text-xs font-bold text-[#778196]">{meetup.maxAttendees?`of ${meetup.maxAttendees} going`:'going'}</span></div></div><span className="mt-5 text-[11px] font-black uppercase tracking-[.14em] text-primary">{labels[meetup.activityType]}</span><h2 className="mt-1 text-2xl font-black tracking-[-.025em]">{meetup.title}</h2>{meetup.creator&&<p className="mt-1 text-xs font-bold text-[#778196]">Hosted by {meetup.creator.name}</p>}<p className="mt-4 line-clamp-2 flex-1 leading-7 text-[#667187]">{meetup.description||'A simple plan with some DadConnect dads.'}</p><div className="my-4 space-y-2 text-sm font-semibold text-[#5f6b7d]"><p className="flex gap-2"><CalendarDaysIcon className="h-4 w-4 shrink-0 text-primary"/>{new Date(meetup.startTime).toLocaleString()}</p>{(meetup.location||meetup.city)&&<p className="flex gap-2"><MapPinIcon className="h-4 w-4 shrink-0 text-primary"/>{[meetup.location,meetup.city,meetup.state].filter(Boolean).join(' · ')}</p>}</div><div className="mb-3 grid grid-cols-3 gap-2">{([['going','I’m in'],['maybe','Maybe'],['not_going',"Can't"]] as [MeetupAttendee['status'],string][]).map(([status,label])=><button key={status} onClick={()=>setRsvp(meetup.id,status)} disabled={saving===meetup.id||(status==='going'&&full&&meetup.userRsvp!=='going')} className={`rounded-xl border-2 px-2 py-2.5 text-sm font-black disabled:opacity-40 ${meetup.userRsvp===status?'border-primary bg-primary text-white':'border-[#ddd8cf] bg-white'}`}>{label}</button>)}</div>{full&&meetup.userRsvp!=='going'&&<p className="mb-3 text-xs font-bold text-[#8a681b]">This plan is full right now.</p>}<Link href={`/meetups/${meetup.id}`} className="flex items-center justify-center gap-2 rounded-xl bg-[#10213d] px-4 py-3 font-black text-white"><UsersIcon className="h-4 w-4"/>See the plan</Link></article>})}</div>
+  {!filtered.length&&<div className="rounded-[30px] border-2 border-dashed border-[#d5cec2] bg-white/60 px-6 py-14 text-center"><span className="text-4xl">🗓️</span><h2 className="mt-4 text-2xl font-black">No plans on the board.</h2><p className="mx-auto mt-2 max-w-md text-[#667187]">Keep it easy. Pick something you would already do and invite a few dads along.</p><Link href="/meetups/create" className="mt-6 inline-block rounded-xl bg-primary px-6 py-3 font-black text-white shadow-[0_3px_0_#173b93]">Make the first plan</Link></div>}
+ </div></main>
 }
