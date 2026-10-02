@@ -1,83 +1,86 @@
+const groups = [
+  { emoji: "🏀", name: "Weekend Crew", meta: "Sports • family-friendly", note: "Pickup games, watch parties, and getting everybody out of the house." },
+  { emoji: "🛝", name: "Playground Dads", meta: "Young kids • local outings", note: "Low-pressure park runs, coffee, and kids burning off some energy." },
+  { emoji: "🧰", name: "Dad Life Exchange", meta: "Advice • real talk", note: "Ask the stuff you would rather hear from another dad who has been there." },
+]
+
+const conversations = [
+  ["School mornings", "Anybody finally figure out a morning routine that actually sticks?"],
+  ["This Saturday", "Park meetup around 10? Kids can run around while we catch up."],
+  ["Dad win", "Got bedtime down under 30 minutes this week. I am counting it."],
+]
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-6xl font-bold text-gray-900 mb-6">
-            DadConnect
+    <main className="min-h-screen overflow-hidden bg-[#f4f1e9] text-[#10213d]">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8">
+        <a href="/" className="flex items-center gap-3 font-black tracking-tight">
+          <span className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-primary text-lg text-white shadow-[0_5px_0_#173b93]">DC</span>
+          <span className="text-xl">DadConnect</span>
+        </a>
+        <a href="/auth" className="rounded-full border-2 border-[#10213d] px-5 py-2 text-sm font-bold transition hover:-translate-y-0.5 hover:bg-white">Sign in</a>
+      </nav>
+
+      <section className="mx-auto grid max-w-7xl gap-12 px-5 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:pb-24 lg:pt-16">
+        <div>
+          <div className="mb-6 inline-flex rotate-[-2deg] items-center gap-2 rounded-full bg-[#f5c85b] px-4 py-2 text-sm font-extrabold text-[#10213d] shadow-[0_3px_0_#d7a52d]">
+            <span>👊</span> Built for the everyday dad stuff
+          </div>
+          <h1 className="max-w-3xl text-5xl font-black leading-[.95] tracking-[-.055em] sm:text-7xl lg:text-[5.4rem]">
+            Dad life is better <span className="relative inline-block text-primary">with a crew.<span className="absolute -bottom-2 left-1 h-2 w-[96%] -rotate-1 rounded-full bg-[#f5c85b]" /></span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Connect with fellow dads, join support groups, and plan activities together. 
-            From football watch parties to playground meetups - find your dad community.
+          <p className="mt-8 max-w-2xl text-lg font-medium leading-8 text-[#526078] sm:text-xl">
+            Find dads who get the season you are in. Talk honestly, make plans, swap advice, and turn “we should hang out” into an actual meetup.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <a
-              href="/auth"
-              className="bg-blue-600 text-white py-4 px-8 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg"
-            >
-              Join the Community
-            </a>
-            <a
-              href="/auth"
-              className="border-2 border-blue-600 text-blue-600 py-4 px-8 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg"
-            >
-              Sign In
-            </a>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a href="/auth" className="rounded-2xl bg-primary px-7 py-4 text-center text-base font-extrabold text-white shadow-[0_5px_0_#173b93] transition hover:-translate-y-1 hover:shadow-[0_7px_0_#173b93]">Find your crew →</a>
+            <a href="#inside" className="rounded-2xl border-2 border-[#c9c4b8] bg-white/70 px-7 py-4 text-center text-base font-extrabold transition hover:bg-white">See what&apos;s inside</a>
           </div>
+          <p className="mt-5 text-sm font-semibold text-[#758096]">Private beta • No public member counts • You control local discovery</p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="bg-white rounded-xl p-8 shadow-lg">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-              </svg>
+        <div className="relative mx-auto w-full max-w-xl py-8">
+          <div className="absolute -right-6 top-0 h-28 w-28 rotate-12 rounded-[32px] bg-[#f5c85b] opacity-80" />
+          <div className="absolute -bottom-3 -left-5 h-24 w-24 -rotate-12 rounded-full bg-[#a8d8c6]" />
+          <div className="relative rotate-[1.5deg] rounded-[30px] border-2 border-[#d8d1c4] bg-white p-5 shadow-[0_14px_0_rgba(16,33,61,.09)] sm:p-7">
+            <div className="mb-6 flex items-center justify-between">
+              <div><p className="text-xs font-black uppercase tracking-[.18em] text-primary">The crew board</p><h2 className="mt-1 text-2xl font-black tracking-tight">What dads are talking about</h2></div>
+              <span className="rounded-full bg-[#e8f1ff] px-3 py-1 text-xs font-bold text-primary">Today</span>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Support Groups</h3>
-            <p className="text-gray-600">
-              Join dad support groups for advice, encouragement, and shared experiences. 
-              From new dads to experienced fathers, find your tribe.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-8 shadow-lg">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+            <div className="space-y-3">
+              {conversations.map(([title, text], index) => (
+                <div key={title} className={`rounded-2xl border p-4 ${index === 1 ? "ml-5 border-[#e3c25e] bg-[#fff8df]" : "mr-3 border-[#dce2ea] bg-[#f8fafc]"}`}>
+                  <div className="mb-1 flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#10213d] text-xs text-white">👨</span><span className="text-sm font-extrabold">{title}</span></div>
+                  <p className="pl-9 text-sm leading-6 text-[#59667b]">{text}</p>
+                </div>
+              ))}
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Meetups & Activities</h3>
-            <p className="text-gray-600">
-              Plan and join dad meetups, watch parties, outdoor adventures, and family activities. 
-              Football season watch parties are our specialty!
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-8 shadow-lg">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-              </svg>
+            <div className="mt-5 flex items-center justify-between rounded-2xl bg-[#10213d] px-5 py-4 text-white">
+              <div><p className="text-xs font-bold text-[#a9b7cc]">NEXT UP</p><p className="font-extrabold">Saturday park meetup</p></div><span className="text-2xl">🛝</span>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Real-time Chat</h3>
-            <p className="text-gray-600">
-              Chat with fellow dads in real-time. Share quick updates, ask questions, 
-              and coordinate activities instantly.
-            </p>
           </div>
         </div>
+      </section>
 
-        <div className="mt-16 bg-blue-50 border border-blue-100 rounded-xl p-8 max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Invite-only beta</h2>
-          <p className="text-gray-600">DadConnect is validating the real groups → chat → meetup loop before showing community numbers. No demo member or meetup totals are published here.</p>
+      <section id="inside" className="border-y border-[#ddd6c8] bg-[#fffdf8] py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="mb-10 max-w-2xl"><p className="text-sm font-black uppercase tracking-[.18em] text-primary">Pick your kind of crew</p><h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Not another endless social feed.</h2><p className="mt-3 text-lg text-[#667187]">DadConnect is organized around conversations that lead somewhere: support, friendship, or an actual plan.</p></div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {groups.map((group, index) => (
+              <article key={group.name} className={`rounded-[26px] border-2 p-6 ${index === 1 ? "border-[#e2bd51] bg-[#fff7dc] md:-translate-y-3" : "border-[#dce1e8] bg-white"}`}>
+                <div className="mb-5 text-4xl">{group.emoji}</div><p className="text-xs font-black uppercase tracking-wider text-primary">{group.meta}</p><h3 className="mt-2 text-2xl font-black">{group.name}</h3><p className="mt-3 leading-7 text-[#667187]">{group.note}</p>
+              </article>
+            ))}
+          </div>
         </div>
+      </section>
 
-        <p className="text-xs text-gray-500 mt-8 text-center">
-          By continuing you agree to our Terms of Service and Privacy Policy.
-        </p>
-      </div>
+      <section className="mx-auto max-w-5xl px-5 py-16 text-center sm:px-8 sm:py-24">
+        <div className="rounded-[32px] bg-[#10213d] px-6 py-12 text-white shadow-[0_10px_0_#d9d1c3] sm:px-12">
+          <span className="text-4xl">🤝</span><h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">You don&apos;t need 5,000 followers.<br />You need a few solid dads.</h2><p className="mx-auto mt-4 max-w-2xl text-[#b9c5d6]">Start with the stage you&apos;re in, the things you care about, and the conversations you actually want to have.</p><a href="/auth" className="mt-7 inline-block rounded-2xl bg-[#f5c85b] px-8 py-4 font-black text-[#10213d] shadow-[0_4px_0_#bd922d]">Join DadConnect</a>
+        </div>
+        <p className="mt-8 text-xs font-semibold text-[#7b8494]">By continuing you agree to our Terms of Service and Privacy Policy.</p>
+      </section>
     </main>
   )
 }
