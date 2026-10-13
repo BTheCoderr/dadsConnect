@@ -1,4 +1,4 @@
-import type { DadGroup, GroupMessage, Meetup, MeetupAttendee } from '@dadconnect/shared'
+import type { DadGroup, GroupMessage, Meetup, MeetupAttendee } from '@dadsconnect/shared'
 import { request } from './api'
 
 export class ChatAPI {

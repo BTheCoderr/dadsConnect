@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { DadGroup, GroupMessage } from '@dadconnect/shared'
+import type { DadGroup, GroupMessage } from '@dadsconnect/shared'
 import { useLocalSearchParams } from 'expo-router'
 import { ChatAPI } from '../../../lib/chat-api'
 import { supabase } from '../../../lib/supabase'

@@ -1,5 +1,5 @@
 import { supabase } from "./supabase"
-import type { ContentItem } from "@dadconnect/shared"
+import type { ContentItem } from "@dadsconnect/shared"
 
 const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "https://dadsconnect.netlify.app").replace(/\/$/, "")
 

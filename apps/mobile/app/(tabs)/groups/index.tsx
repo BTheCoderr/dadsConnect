@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
-import type { DadGroup } from '@dadconnect/shared'
+import type { DadGroup } from '@dadsconnect/shared'
 import { ChatAPI } from '../../../lib/chat-api'
 
 export default function GroupsScreen() {

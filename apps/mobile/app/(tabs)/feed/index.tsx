@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native"
 import { useRouter } from "expo-router"
-import type { ContentItem } from "@dadconnect/shared"
+import type { ContentItem } from "@dadsconnect/shared"
 import { api } from "../../../lib/api"
 
 export default function FeedScreen() {
