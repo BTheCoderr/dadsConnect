@@ -2,14 +2,17 @@ import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { DadGroup, GroupMessage } from '@dadsconnect/shared'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { ChatAPI } from '../../../lib/chat-api'
 import { supabase } from '../../../lib/supabase'
 
 const LAST_GROUP_KEY='dadconnect:last-chat-group'
 
 export default function ChatScreen() {
+  const router = useRouter()
   const { groupId } = useLocalSearchParams<{ groupId?: string }>()
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set())
   const [groups,setGroups]=useState<DadGroup[]>([])
   const [selectedGroup,setSelectedGroup]=useState<DadGroup | null>(null)
   const [messages,setMessages]=useState<GroupMessage[]>([])
@@ -52,7 +55,39 @@ export default function ChatScreen() {
     }
   }
 
+  useEffect(() => {
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setCurrentUserId(user?.id ?? null)
+      if (user) {
+        const result = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id)
+        if (!result.error) setBlockedIds(new Set((result.data ?? []).map(item => item.blocked_id)))
+      }
+    })()
+  }, [])
   useEffect(() => { void loadGroups() },[groupId])
+
+  const blockUser = async (userId: string) => {
+    if (!currentUserId || userId === currentUserId) return
+    const result = await supabase.from('user_blocks').upsert({
+      blocker_id: currentUserId,
+      blocked_id: userId,
+    }, { onConflict: 'blocker_id,blocked_id' })
+    if (result.error) return Alert.alert('Could not hide this member', 'Community safety controls are not available yet. Try again later.')
+    setBlockedIds(prev => new Set([...prev, userId]))
+    Alert.alert('Member hidden', 'Their messages are hidden in your DadConnect mobile chat. You can undo this in Profile.')
+  }
+
+  const messageOptions = (message: GroupMessage) => {
+    if (!selectedGroup || !currentUserId || message.authorId === currentUserId) return
+    Alert.alert('Message options', 'What would you like to do?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Report', onPress: () => router.push({ pathname: '/(tabs)/chat/report', params: {
+        groupId: selectedGroup.id, messageId: message.id, reportedUserId: message.authorId,
+      } }) },
+      { text: 'Hide member', onPress: () => void blockUser(message.authorId) },
+    ])
+  }
 
   useEffect(() => {
     if(!selectedGroup) return
@@ -112,14 +147,14 @@ export default function ChatScreen() {
         <TouchableOpacity onPress={() => {setSelectedGroup(null);setMessages([])}}><Text style={styles.back}>← Groups</Text></TouchableOpacity>
         <View><Text style={styles.chatTitle}>{selectedGroup.name}</Text><Text style={styles.groupMeta}>{selectedGroup.memberCount} members</Text></View>
       </View>
-      <FlatList ref={listRef} data={messages} keyExtractor={item => item.id} contentContainerStyle={styles.messages}
+      <FlatList ref={listRef} data={messages.filter(item => !blockedIds.has(item.authorId))} keyExtractor={item => item.id} contentContainerStyle={styles.messages}
         ListEmptyComponent={<Text style={styles.empty}>No messages yet. Start the conversation.</Text>}
         renderItem={({item}) => (
-          <View style={styles.message}>
+          <TouchableOpacity onLongPress={() => messageOptions(item)} delayLongPress={450} activeOpacity={0.9} style={styles.message}>
             {item.author?.name ? <Text style={styles.author}>{item.author.name}</Text> : null}
             <Text style={styles.messageText}>{item.content}</Text>
             <Text style={styles.time}>{new Date(item.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</Text>
-          </View>
+          </TouchableOpacity>
         )} />
       <View style={styles.composer}>
         <TextInput value={newMessage} onChangeText={setNewMessage} placeholder="Message the group…" multiline maxLength={4000} style={styles.input} />
