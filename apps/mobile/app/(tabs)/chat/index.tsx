@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useLocalSearchParams } from 'expo-router'
 import type { DadGroup, GroupMessage } from '@dadconnect/shared'
 import { ChatAPI } from '../../../lib/chat-api'
 import { supabase } from '../../../lib/supabase'
@@ -8,6 +9,7 @@ import { supabase } from '../../../lib/supabase'
 const LAST_GROUP_KEY='dadconnect:last-chat-group'
 
 export default function ChatScreen() {
+  const { groupId } = useLocalSearchParams<{ groupId?: string }>()
   const [groups,setGroups]=useState<DadGroup[]>([])
   const [selectedGroup,setSelectedGroup]=useState<DadGroup | null>(null)
   const [messages,setMessages]=useState<GroupMessage[]>([])
@@ -15,6 +17,7 @@ export default function ChatScreen() {
   const [loading,setLoading]=useState(true)
   const [sending,setSending]=useState(false)
   const listRef=useRef<FlatList<GroupMessage> | null>(null)
+  const selectedIdRef=useRef<string | null>(null)
 
   const loadGroups=async () => {
     try{
@@ -22,10 +25,10 @@ export default function ChatScreen() {
       const joined=all.filter(group => group.isMember)
       setGroups(joined)
       const savedId=await AsyncStorage.getItem(LAST_GROUP_KEY)
-      if(savedId && !selectedGroup){
-        const saved=joined.find(group => group.id === savedId)
-        if(saved) await openGroup(saved)
-      }
+      const requestedId=typeof groupId === 'string' ? groupId : undefined
+      const target=joined.find(group => group.id === requestedId) ??
+        (!requestedId ? joined.find(group => group.id === savedId) : undefined)
+      if(target) await openGroup(target)
     }catch(error){
       Alert.alert('Could not load chats',error instanceof Error ? error.message : 'Try again.')
     }finally{
@@ -33,22 +36,34 @@ export default function ChatScreen() {
     }
   }
 
-  const loadMessages=async (groupId:string) => {
-    const next=await ChatAPI.getMessages(groupId)
-    setMessages(next)
+  const loadMessages=async (targetGroupId:string) => {
+    const next=await ChatAPI.getMessages(targetGroupId)
+    // Ignore a slow response for a chat the user has already left.
+    if(selectedIdRef.current === targetGroupId) setMessages(next)
   }
 
   const openGroup=async (group:DadGroup) => {
+    selectedIdRef.current=group.id
+    setMessages([])
     setSelectedGroup(group)
-    await AsyncStorage.setItem(LAST_GROUP_KEY,group.id)
+    try{
+      await AsyncStorage.setItem(LAST_GROUP_KEY,group.id)
+    }catch{
+      // Storage is optional; chat should remain usable if saving history fails.
+    }
     try{
       await loadMessages(group.id)
     }catch(error){
-      Alert.alert('Could not open chat',error instanceof Error ? error.message : 'Try again.')
+      if(selectedIdRef.current === group.id){
+        Alert.alert('Could not open chat',error instanceof Error ? error.message : 'Try again.')
+      }
     }
   }
 
-  useEffect(() => { void loadGroups() },[])
+  useEffect(() => {
+    void loadGroups()
+    return () => { selectedIdRef.current=null }
+  },[groupId])
 
   useEffect(() => {
     if(!selectedGroup) return
@@ -105,7 +120,7 @@ export default function ChatScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.chatHeader}>
-        <TouchableOpacity onPress={() => {setSelectedGroup(null);setMessages([])}}><Text style={styles.back}>← Groups</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => {selectedIdRef.current=null;setSelectedGroup(null);setMessages([])}}><Text style={styles.back}>← Groups</Text></TouchableOpacity>
         <View><Text style={styles.chatTitle}>{selectedGroup.name}</Text><Text style={styles.groupMeta}>{selectedGroup.memberCount} members</Text></View>
       </View>
       <FlatList ref={listRef} data={messages} keyExtractor={item => item.id} contentContainerStyle={styles.messages}
