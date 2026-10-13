@@ -46,3 +46,11 @@ Use two disposable test accounts to verify:
 9. Check all flows while offline, after session expiration, and after reopening the app.
 
 **App Store readiness remains gated on approved artwork, EAS/Apple signing, a real TestFlight build, privacy disclosures, moderation operations, and completing these tests.**
+
+## October 13 beta-branch integration
+
+This mobile beta branch includes the newer Expo SDK 54 configuration and safety flows. The old SDK 53 dependency tree and `.github/workflows/mobile-bundle.yml` from the main branch are intentionally superseded by `.github/workflows/dadconnect-mobile-ci.yml`.
+
+Mobile reliability updates: avoid treating temporary session-read failures as sign-out, preserve the requested group when opening chat, ignore stale message responses from a previously selected group, and separate pull-to-refresh from feed pagination. These updates are code and bundle tested, not physical-device validated.
+
+The beta branch can be reviewed and merged only after confirming the backend safety migration, Apple/EAS identifiers, store artwork, privacy handling, and end-to-end tests listed above.
