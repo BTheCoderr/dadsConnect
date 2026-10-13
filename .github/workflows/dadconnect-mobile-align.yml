@@ -23,6 +23,10 @@ jobs:
         with:
           node-version: "22"
           cache: npm
+      - name: Rebuild historical nested lockfile as a clean hoisted dependency graph
+        run: |
+          rm -f package-lock.json
+          npm install
       - name: Match React 19 typings before dependency resolution
         run: npm pkg set 'devDependencies.@types/react=~19.1.10' --workspace=@dadsconnect/mobile
       - name: Align core native packages with Expo SDK 54
