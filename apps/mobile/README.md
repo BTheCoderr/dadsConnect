@@ -20,3 +20,29 @@ This is the Expo/React Native app in `apps/mobile`. All product development in t
 - A GitHub TypeScript pass, Expo export, or merged PR does not imply a successful signed device build or TestFlight upload.
 
 Native app icons and Apple signing credentials still need the approved brand artwork and owner's Apple/Expo configuration.
+
+
+## Mobile account and community safety requirements
+
+- The iOS and Android screens now include profile editing, password recovery, account deletion, message reports, and member hiding/unhiding.
+- In Supabase Auth URL Configuration, allow `dadconnect://reset-password` as an additional redirect URL. Test reset emails from a physical device. Without this allowlist the recovery flow cannot complete.
+- Apply the reviewed migration `supabase/migrations/20261013181300_mobile_safety_controls.sql` to the dedicated DadConnect database before users can report or hide members. The app only filters hidden authors inside mobile group chat; it does not remove those members from groups.
+- A qualified community administrator must review `public.safety_reports` from a privileged dashboard and respond to abuse reports. Those rows are private to their reporter under RLS, never public.
+- Server-side account deletion requires `SUPABASE_SERVICE_ROLE_KEY` configured on the server host. **Never** expose it as `EXPO_PUBLIC_` or `NEXT_PUBLIC_`.
+- Account deletion requires a fresh password verification plus typing DELETE. It removes the user's login, owned meetups and groups, and dependent records. Real-device and staging tests with disposable accounts are required before release. Deletion of shared owned content can affect other members.
+- Confirm backend restoration and live HTTPS API connectivity; passing Metro builds alone is not a backend integration test.
+
+### Native QA
+
+Use two disposable test accounts to verify:
+1. Sign up and confirm email, log in, log out, reopen app and restore session.
+2. Reset password by following an email link on both iOS and Android.
+3. Edit bio/interests and confirm public vs private profile separation.
+4. Join a group and chat, report another member's message, hide them, then unhide.
+5. Confirm reported records are visible only to the reporter and an administrator.
+6. Create a meetup, RSVP on a second account and verify limits.
+7. Save/un-save, read/unread, and verify no cross-account content leaks.
+8. Delete one disposable account; confirm it can no longer log in and its owned content is removed.
+9. Check all flows while offline, after session expiration, and after reopening the app.
+
+**App Store readiness remains gated on approved artwork, EAS/Apple signing, a real TestFlight build, privacy disclosures, moderation operations, and completing these tests.**
