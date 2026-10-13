@@ -1,0 +1,59 @@
+name: DadConnect Native Dependency Alignment
+
+on:
+  push:
+    branches:
+      - fix/dadconnect-mobile-beta-20261013
+    paths:
+      - .github/workflows/dadconnect-mobile-align.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  align-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Align core native packages with Expo SDK 54
+        run: npm install --workspace=@dadsconnect/mobile 'expo@~54.0.0' 'react@19.1.0' 'react-dom@19.1.0' 'react-native@0.81.5' 'react-native-web@~0.21.0' 'expo-router@~6.0.24' --save
+      - name: Install Expo Router peer dependencies
+        working-directory: apps/mobile
+        run: npx expo install expo-linking expo-constants expo-status-bar react-native-safe-area-context react-native-screens react-native-worklets --npm
+      - name: Align remaining Expo native dependencies
+        working-directory: apps/mobile
+        run: npx expo install --fix --npm
+      - name: Align React TypeScript types
+        run: npm install --workspace=@dadsconnect/mobile --save-dev '@types/react@~19.1.10'
+      - name: Commit mobile package manifest and shared lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/mobile/package.json package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "build(mobile): align Expo SDK 54 and lockfile"
+            git push origin HEAD:fix/dadconnect-mobile-beta-20261013
+          fi
+      - name: Check clean install from lockfile
+        run: npm ci
+      - name: Typecheck native workspace
+        run: npm run typecheck && npm run typecheck:mobile
+      - name: Validate native dependency compatibility
+        working-directory: apps/mobile
+        run: npx expo install --check && npx expo-doctor
+      - name: Export iOS JavaScript bundle
+        working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://swkmxrkwjlwtauymocmg.supabase.co
+          EXPO_PUBLIC_SUPABASE_KEY: sb_publishable_ci_placeholder
+          EXPO_PUBLIC_API_URL: https://dadsconnect.netlify.app
+          CI: "1"
+        run: npx expo export --platform ios --output-dir ../../.expo-mobile-verify
