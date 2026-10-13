@@ -1,0 +1,64 @@
+name: DadConnect Expo 53 dependency alignment
+
+# Isolated remediation only. Do not publish, deploy, or start an EAS build.
+on:
+  push:
+    branches:
+      - fix/dadconnect-mobile-expo53-alignment-20261013
+    paths:
+      - ".github/workflows/expo53-alignment.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    name: Align, bundle and validate Expo SDK 53
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: "1"
+      EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      EXPO_PUBLIC_SUPABASE_KEY: sb_publishable_ci_placeholder
+      EXPO_PUBLIC_API_URL: https://example.com
+    steps:
+      - name: Check out isolated mobile repair branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/dadconnect-mobile-expo53-alignment-20261013
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install current locked workspace
+        run: npm ci
+      - name: Remove direct incompatible Metro pin
+        run: npm pkg delete dependencies.metro --workspace=@dadsconnect/mobile
+      - name: Let Expo align SDK 53 dependencies
+        working-directory: apps/mobile
+        run: npx expo install --fix --npm
+      - name: Reinstall resulting workspace from lockfile
+        run: npm ci
+      - name: Typecheck shared and mobile code
+        run: |
+          npm run typecheck
+          npm run typecheck:mobile
+      - name: Export iOS JavaScript bundle
+        working-directory: apps/mobile
+        run: npx expo export --platform ios --output-dir dist-ci-ios
+      - name: Export Android JavaScript bundle
+        working-directory: apps/mobile
+        run: npx expo export --platform android --output-dir dist-ci-android
+      - name: Commit validated dependency alignment on repair branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/mobile/package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "No dependency updates required."
+          else
+            git commit -m "Align DadConnect mobile dependencies to Expo SDK 53"
+            git push origin HEAD:fix/dadconnect-mobile-expo53-alignment-20261013
+          fi
