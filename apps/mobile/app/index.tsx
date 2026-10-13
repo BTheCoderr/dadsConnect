@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react"
 import { Redirect } from "expo-router"
-import { View, Text } from "react-native"
+import { ActivityIndicator, View } from "react-native"
 import { supabase } from "../lib/supabase"
 
 export default function Index() {
-  const [ready,setReady]=useState(false)
-  const [signedIn,setSignedIn]=useState(false)
-
+  const [signedIn, setSignedIn] = useState<boolean | null>(null)
   useEffect(() => {
-    supabase.auth.getSession().then(({data}) => {
-      setSignedIn(Boolean(data.session))
-      setReady(true)
+    let active = true
+    void supabase.auth.getSession()
+      .then(({ data }) => { if (active) setSignedIn(Boolean(data.session)) })
+      .catch(() => { if (active) setSignedIn(false) })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active) setSignedIn(Boolean(session))
     })
-  },[])
-
-  if(!ready) return <View style={{flex:1,alignItems:"center",justifyContent:"center"}}><Text>Loading DadConnect…</Text></View>
+    return () => { active = false; subscription.unsubscribe() }
+  }, [])
+  if (signedIn === null) return <View style={{flex:1,justifyContent:"center",alignItems:"center"}}><ActivityIndicator /></View>
   return <Redirect href={signedIn ? "/(tabs)/feed" : "/sign-in"} />
 }

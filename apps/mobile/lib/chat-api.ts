@@ -1,30 +1,5 @@
 import type { DadGroup, GroupMessage, Meetup, MeetupAttendee } from '@dadconnect/shared'
-import { supabase } from './supabase'
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
-
-if (!API_BASE_URL) {
-  throw new Error('Missing EXPO_PUBLIC_API_URL')
-}
-
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const { data: { session } } = await supabase.auth.getSession()
-  const headers = new Headers(options.headers)
-  headers.set('Content-Type', 'application/json')
-  if (session?.access_token) headers.set('Authorization', `Bearer ${session.access_token}`)
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  })
-
-  const body = response.status === 204 ? null : await response.json().catch(() => null)
-  if (!response.ok) {
-    const message = body && typeof body === 'object' && 'error' in body ? String(body.error) : `Request failed (${response.status})`
-    throw new Error(message)
-  }
-  return body as T
-}
+import { request } from './api'
 
 export class ChatAPI {
   static async getGroups(): Promise<DadGroup[]> {

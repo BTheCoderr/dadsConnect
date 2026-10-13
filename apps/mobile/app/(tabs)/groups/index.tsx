@@ -51,7 +51,7 @@ export default function GroupsScreen() {
       <Text style={styles.description}>{item.description || 'No description yet.'}</Text>
       <View style={styles.tags}>{item.topics.slice(0, 4).map(topic => <Text key={topic} style={styles.tag}>{topic}</Text>)}</View>
       {item.isMember ? (
-        <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/(tabs)/chat')}>
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push({ pathname: '/(tabs)/chat', params: { groupId: item.id } })}>
           <Text style={styles.secondaryText}>Open group chat</Text>
         </TouchableOpacity>
       ) : (

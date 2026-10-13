@@ -13,7 +13,7 @@ import {
 } from "react-native"
 import { useRouter } from "expo-router"
 import type { ContentItem } from "@dadconnect/shared"
-import { api } from "@dadconnect/shared"
+import { api } from "../../../lib/api"
 
 export default function FeedScreen() {
   const router=useRouter()

@@ -7,7 +7,11 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit",
+    "prestart": "npm run -w @dadsconnect/shared build",
+    "preios": "npm run -w @dadsconnect/shared build",
+    "preandroid": "npm run -w @dadsconnect/shared build"
   },
   "dependencies": {
     "@dadsconnect/shared": "*",

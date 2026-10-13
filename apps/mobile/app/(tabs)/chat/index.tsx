@@ -2,12 +2,14 @@ import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { DadGroup, GroupMessage } from '@dadconnect/shared'
+import { useLocalSearchParams } from 'expo-router'
 import { ChatAPI } from '../../../lib/chat-api'
 import { supabase } from '../../../lib/supabase'
 
 const LAST_GROUP_KEY='dadconnect:last-chat-group'
 
 export default function ChatScreen() {
+  const { groupId } = useLocalSearchParams<{ groupId?: string }>()
   const [groups,setGroups]=useState<DadGroup[]>([])
   const [selectedGroup,setSelectedGroup]=useState<DadGroup | null>(null)
   const [messages,setMessages]=useState<GroupMessage[]>([])
@@ -21,11 +23,12 @@ export default function ChatScreen() {
       const all=await ChatAPI.getGroups()
       const joined=all.filter(group => group.isMember)
       setGroups(joined)
-      const savedId=await AsyncStorage.getItem(LAST_GROUP_KEY)
-      if(savedId && !selectedGroup){
-        const saved=joined.find(group => group.id === savedId)
-        if(saved) await openGroup(saved)
-      }
+      const { data: { session } } = await supabase.auth.getSession()
+      const savedId=await AsyncStorage.getItem(`${LAST_GROUP_KEY}:${session?.user.id ?? 'guest'}`)
+      const requestedId=typeof groupId === 'string' ? groupId : undefined
+      const target=joined.find(group => group.id === requestedId)
+        ?? joined.find(group => group.id === savedId)
+      if(target) await openGroup(target)
     }catch(error){
       Alert.alert('Could not load chats',error instanceof Error ? error.message : 'Try again.')
     }finally{
@@ -40,7 +43,8 @@ export default function ChatScreen() {
 
   const openGroup=async (group:DadGroup) => {
     setSelectedGroup(group)
-    await AsyncStorage.setItem(LAST_GROUP_KEY,group.id)
+    const { data: { session } } = await supabase.auth.getSession()
+    await AsyncStorage.setItem(`${LAST_GROUP_KEY}:${session?.user.id ?? 'guest'}`,group.id)
     try{
       await loadMessages(group.id)
     }catch(error){
@@ -48,7 +52,7 @@ export default function ChatScreen() {
     }
   }
 
-  useEffect(() => { void loadGroups() },[])
+  useEffect(() => { void loadGroups() },[groupId])
 
   useEffect(() => {
     if(!selectedGroup) return
