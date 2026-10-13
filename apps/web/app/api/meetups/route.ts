@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServerClient } from '@/lib/supabase-server'
+import { getRequestUser, getSupabaseServerClient } from '@/lib/supabase-server'
 import type { Meetup, MeetupAttendee } from '@dadsconnect/shared'
 
 const ACTIVITY_TYPES = new Set(['watch_party','outdoor','sports','coffee','playdate','other'])
@@ -7,7 +7,7 @@ const ACTIVITY_TYPES = new Set(['watch_party','outdoor','sports','coffee','playd
 export async function GET(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await getRequestUser(supabase, req)
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await getRequestUser(supabase, req)
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

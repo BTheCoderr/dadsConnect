@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native"
 import { useRouter } from "expo-router"
-import { api } from "@dadconnect/shared"
+import { api } from "../../../lib/api"
 
 type LibraryItem=Awaited<ReturnType<typeof api.getLibrary>>["items"][number]
 

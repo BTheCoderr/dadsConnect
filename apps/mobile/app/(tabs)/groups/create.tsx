@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import type { DadGroup } from '@dadconnect/shared'
+import type { DadGroup } from '@dadsconnect/shared'
 import { ChatAPI } from '../../../lib/chat-api'
 
 const categories:[DadGroup['category'],string][]=[

@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseServerClient } from '@/lib/supabase-server'
+import { getRequestUser, getSupabaseServerClient } from '@/lib/supabase-server'
 import type { Meetup, MeetupAttendee } from '@dadsconnect/shared'
 
 export async function GET(
-  _request: Request,
+  req: Request,
   { params }: { params: Promise<{ meetupId: string }> }
 ) {
   try {
     const supabase=await getSupabaseServerClient()
-    const {data:{user},error:authError}=await supabase.auth.getUser()
+    const {data:{user},error:authError}=await getRequestUser(supabase, req)
     if(authError || !user) return NextResponse.json({error:'Unauthorized'},{status:401})
 
     const {data:meetup,error}=await supabase

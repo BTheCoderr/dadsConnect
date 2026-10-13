@@ -48,6 +48,7 @@ export default function SignInScreen(){
         <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" style={styles.input} />
         <TextInput value={password} onChangeText={setPassword} placeholder="Password (8+ characters)" secureTextEntry style={styles.input} />
         <TouchableOpacity disabled={loading} style={styles.primary} onPress={submit}><Text style={styles.primaryText}>{loading ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}</Text></TouchableOpacity>
+        {mode === 'signin' ? <TouchableOpacity onPress={() => router.push('/forgot-password')}><Text style={styles.switch}>Forgot password?</Text></TouchableOpacity> : null}
         <TouchableOpacity onPress={() => setMode(current => current === 'signin' ? 'signup' : 'signin')}><Text style={styles.switch}>{mode === 'signin' ? 'New to DadConnect? Create an account' : 'Already have an account? Sign in'}</Text></TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

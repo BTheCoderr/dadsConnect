@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import type { DadGroup, Meetup } from '@dadconnect/shared'
+import type { DadGroup, Meetup } from '@dadsconnect/shared'
 import { ChatAPI } from '../../../lib/chat-api'
 
 const activities:[Meetup['activityType'],string][]=[

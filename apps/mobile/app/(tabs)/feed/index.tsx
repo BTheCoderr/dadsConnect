@@ -12,8 +12,8 @@ import {
   View,
 } from "react-native"
 import { useRouter } from "expo-router"
-import type { ContentItem } from "@dadconnect/shared"
-import { api } from "@dadconnect/shared"
+import type { ContentItem } from "@dadsconnect/shared"
+import { api } from "../../../lib/api"
 
 export default function FeedScreen() {
   const router=useRouter()
@@ -27,8 +27,6 @@ export default function FeedScreen() {
   const requestInFlight=useRef(false)
 
   const load=async (reset=true) => {
-    // FlatList may call onEndReached repeatedly during the same render.
-    // One request at a time prevents duplicate pages and stale cursors.
     if(requestInFlight.current) return
     requestInFlight.current=true
     if(reset) setRefreshing(true)

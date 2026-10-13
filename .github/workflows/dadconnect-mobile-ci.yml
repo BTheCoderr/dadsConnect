@@ -1,0 +1,56 @@
+name: DadConnect Native CI
+
+on:
+  push:
+    branches:
+      - main
+      - fix/dadconnect-mobile-beta-20261013
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/shared/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.npmrc'
+      - '.github/workflows/dadconnect-mobile-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/shared/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.npmrc'
+      - '.github/workflows/dadconnect-mobile-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  native-bundles:
+    name: iOS + Android JavaScript bundles
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: '1'
+      EXPO_PUBLIC_SUPABASE_URL: https://swkmxrkwjlwtauymocmg.supabase.co
+      EXPO_PUBLIC_SUPABASE_KEY: sb_publishable_ci_placeholder
+      EXPO_PUBLIC_API_URL: https://dadsconnect.netlify.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Reproducible workspace install
+        run: npm ci
+      - name: Build shared types and verify mobile TypeScript
+        run: npm run typecheck && npm run typecheck:mobile
+      - name: Verify Expo package compatibility
+        working-directory: apps/mobile
+        run: npx expo install --check && npx expo-doctor
+      - name: Compile native iOS JavaScript bundle
+        working-directory: apps/mobile
+        run: npx expo export --platform ios --output-dir ../../.expo-mobile-ios
+      - name: Compile native Android JavaScript bundle
+        working-directory: apps/mobile
+        run: npx expo export --platform android --output-dir ../../.expo-mobile-android

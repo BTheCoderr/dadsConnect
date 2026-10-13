@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServerClient } from '@/lib/supabase-server'
+import { getRequestUser, getSupabaseServerClient } from '@/lib/supabase-server'
 import type { DadGroup } from '@dadsconnect/shared'
 
 export async function GET(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getRequestUser(supabase, req)
 
     const { searchParams } = new URL(req.url)
     const category = searchParams.get('category')
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await getSupabaseServerClient()
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await getRequestUser(supabase, req)
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

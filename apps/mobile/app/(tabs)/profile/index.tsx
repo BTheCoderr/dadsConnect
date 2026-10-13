@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View,Text,StyleSheet,ScrollView,TouchableOpacity,Alert,RefreshControl } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { ChatAPI } from '../../../lib/chat-api'
 import { supabase } from '../../../lib/supabase'
 
@@ -21,7 +21,7 @@ export default function ProfileScreen(){
     }
   }
 
-  useEffect(() => { void load() },[])
+  useFocusEffect(React.useCallback(() => { void load() }, []))
 
   const logout=() => {
     Alert.alert('Sign out','Sign out of DadConnect?',[
@@ -63,6 +63,21 @@ export default function ProfileScreen(){
         <Text style={styles.note}>These stay in your self-only profile record.</Text>
       </View>
 
+      <View style={styles.section}>
+        <TouchableOpacity style={styles.edit} onPress={() => router.push('/(tabs)/profile/edit')}>
+          <Text style={styles.editText}>Edit profile and private preferences</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.section}>
+        <TouchableOpacity style={styles.deleteAccount} onPress={() => router.push('/(tabs)/profile/delete')}>
+          <Text style={styles.deleteAccountText}>Delete my DadConnect account</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.section}>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/profile/blocked')}>
+          <Text style={styles.blockedLink}>Hidden members and unblock</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.section}><TouchableOpacity style={styles.logout} onPress={logout}><Text style={styles.logoutText}>Sign out</Text></TouchableOpacity></View>
     </ScrollView>
   )
@@ -74,5 +89,8 @@ const styles=StyleSheet.create({
   name:{fontSize:24,fontWeight:'700',marginTop:12,color:'#222'},bio:{textAlign:'center',color:'#666',marginTop:6,lineHeight:20},stats:{flexDirection:'row',backgroundColor:'white',marginTop:10,padding:18,justifyContent:'space-around'},
   stat:{alignItems:'center'},statNumber:{fontSize:22,fontWeight:'700',color:'#1473e6'},statLabel:{fontSize:11,color:'#777',marginTop:3},section:{backgroundColor:'white',padding:18,marginTop:10},
   sectionTitle:{fontSize:17,fontWeight:'700',marginBottom:12,color:'#222'},tags:{flexDirection:'row',flexWrap:'wrap',gap:7},tag:{backgroundColor:'#eaf3ff',color:'#1769aa',paddingHorizontal:9,paddingVertical:5,borderRadius:14,fontSize:12},
+  blockedLink:{color:'#1473e6',fontWeight:'700',textAlign:'center',padding:8},
+  deleteAccount:{borderWidth:1,borderColor:'#cb3340',padding:13,borderRadius:9,alignItems:'center'},deleteAccountText:{color:'#cb3340',fontWeight:'700'},
+  edit:{backgroundColor:'#1473e6',padding:13,borderRadius:9,alignItems:'center'},editText:{color:'white',fontWeight:'700'},
   muted:{color:'#666',marginBottom:5},note:{fontSize:11,color:'#888',marginTop:8},logout:{backgroundColor:'#d93838',padding:12,borderRadius:9,alignItems:'center'},logoutText:{color:'white',fontWeight:'700'}
 })

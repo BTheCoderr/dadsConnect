@@ -44,3 +44,15 @@ export async function getSupabaseServerClient() {
     },
   })
 }
+
+/** Validate native Bearer tokens against Supabase Auth; cookie sessions remain valid on web. */
+export function getRequestUser(
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
+  request: Request,
+) {
+  const authorization = request.headers.get("authorization")
+  if (authorization?.toLowerCase().startsWith("bearer ")) {
+    return supabase.auth.getUser(authorization.slice(7).trim())
+  }
+  return supabase.auth.getUser()
+}

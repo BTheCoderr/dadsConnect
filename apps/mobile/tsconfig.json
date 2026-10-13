@@ -10,7 +10,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "@dadconnect/shared": [
+      "@dadsconnect/shared": [
         "../../packages/shared/src"
       ],
       "@/*": [

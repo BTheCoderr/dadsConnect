@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseServerClient } from '@/lib/supabase-server'
+import { getRequestUser, getSupabaseServerClient } from '@/lib/supabase-server'
 
 const RSVP_STATUSES = new Set(['going','maybe','not_going'])
 
@@ -9,7 +9,7 @@ export async function POST(
 ) {
   try {
     const supabase = await getSupabaseServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await getRequestUser(supabase, req)
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -88,12 +88,12 @@ export async function POST(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ meetupId: string }> }
 ) {
   try {
     const supabase = await getSupabaseServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await getRequestUser(supabase, req)
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

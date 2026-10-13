@@ -30,7 +30,7 @@ DadConnect is no longer being treated as a static community mockup. The current 
 
 **DadConnect is a web + mobile community platform for fathers to find local groups, coordinate meetups, share practical support, and stay connected around parenting and everyday life.**
 
-> Status: invite-only web beta hardening. Live web: https://dadsconnect.netlify.app. Mobile is intentionally frozen while the web loop is validated.
+> Status: invite-only web beta and active native mobile stabilization. Live web: https://dadsconnect.netlify.app. The mobile app is awaiting a signed EAS/iOS device build.
 
 ## Product
 
