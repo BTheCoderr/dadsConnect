@@ -33,6 +33,8 @@ jobs:
       - name: Align remaining Expo native dependencies (secure-store plugin configured)
         working-directory: apps/mobile
         run: npx expo install --fix --npm
+      - name: Deduplicate native modules in the npm workspace
+        run: npm dedupe
       - name: Align React TypeScript types
         run: npm install --workspace=@dadsconnect/mobile --save-dev '@types/react@~19.1.10'
       - name: Commit mobile package manifest and shared lockfile
