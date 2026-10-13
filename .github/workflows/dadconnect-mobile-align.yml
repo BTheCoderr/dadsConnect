@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: "22"
           cache: npm
+      - name: Match React 19 typings before dependency resolution
+        run: npm pkg set 'devDependencies.@types/react=~19.1.10' --workspace=@dadsconnect/mobile
       - name: Align core native packages with Expo SDK 54
         run: npm install --workspace=@dadsconnect/mobile 'expo@~54.0.0' 'react@19.1.0' 'react-dom@19.1.0' 'react-native@0.81.5' 'react-native-web@~0.21.0' 'expo-router@~6.0.24' --save
       - name: Install Expo Router peer dependencies
