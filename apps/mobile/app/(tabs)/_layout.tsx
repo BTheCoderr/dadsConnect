@@ -24,6 +24,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="meetups" options={{ title: "Meetups" }} />
       <Tabs.Screen name="chat" options={{ title: "Chat" }} />
       <Tabs.Screen name="profile" options={{ title: "Profile" }} />
+      <Tabs.Screen name="profile/edit" options={{ href: null, title: "Edit Profile" }} />
       <Tabs.Screen name="library" options={{ href: null, title: "Library" }} />
       <Tabs.Screen name="groups/create" options={{ href: null, title: "Create Group" }} />
       <Tabs.Screen name="meetups/create" options={{ href: null, title: "Create Meetup" }} />

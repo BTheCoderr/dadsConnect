@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View,Text,StyleSheet,ScrollView,TouchableOpacity,Alert,RefreshControl } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { ChatAPI } from '../../../lib/chat-api'
 import { supabase } from '../../../lib/supabase'
 
@@ -21,7 +21,7 @@ export default function ProfileScreen(){
     }
   }
 
-  useEffect(() => { void load() },[])
+  useFocusEffect(React.useCallback(() => { void load() }, []))
 
   const logout=() => {
     Alert.alert('Sign out','Sign out of DadConnect?',[
@@ -63,6 +63,11 @@ export default function ProfileScreen(){
         <Text style={styles.note}>These stay in your self-only profile record.</Text>
       </View>
 
+      <View style={styles.section}>
+        <TouchableOpacity style={styles.edit} onPress={() => router.push('/(tabs)/profile/edit')}>
+          <Text style={styles.editText}>Edit profile and private preferences</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.section}><TouchableOpacity style={styles.logout} onPress={logout}><Text style={styles.logoutText}>Sign out</Text></TouchableOpacity></View>
     </ScrollView>
   )
