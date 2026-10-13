@@ -79,5 +79,6 @@ const styles=StyleSheet.create({
   name:{fontSize:24,fontWeight:'700',marginTop:12,color:'#222'},bio:{textAlign:'center',color:'#666',marginTop:6,lineHeight:20},stats:{flexDirection:'row',backgroundColor:'white',marginTop:10,padding:18,justifyContent:'space-around'},
   stat:{alignItems:'center'},statNumber:{fontSize:22,fontWeight:'700',color:'#1473e6'},statLabel:{fontSize:11,color:'#777',marginTop:3},section:{backgroundColor:'white',padding:18,marginTop:10},
   sectionTitle:{fontSize:17,fontWeight:'700',marginBottom:12,color:'#222'},tags:{flexDirection:'row',flexWrap:'wrap',gap:7},tag:{backgroundColor:'#eaf3ff',color:'#1769aa',paddingHorizontal:9,paddingVertical:5,borderRadius:14,fontSize:12},
+  edit:{backgroundColor:'#1473e6',padding:13,borderRadius:9,alignItems:'center'},editText:{color:'white',fontWeight:'700'},
   muted:{color:'#666',marginBottom:5},note:{fontSize:11,color:'#888',marginTop:8},logout:{backgroundColor:'#d93838',padding:12,borderRadius:9,alignItems:'center'},logoutText:{color:'white',fontWeight:'700'}
 })
