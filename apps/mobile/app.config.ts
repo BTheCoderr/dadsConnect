@@ -8,6 +8,6 @@ const config: ExpoConfig = {
   platforms: ["ios", "android"],
   ios: { supportsTablet: true, bundleIdentifier: "com.bthecoderr.dadconnect", buildNumber: "1" },
   android: { package: "com.bthecoderr.dadconnect", versionCode: 1 },
-  plugins: ["expo-router"],
+  plugins: ["expo-router", "expo-secure-store"],
 }
 export default config

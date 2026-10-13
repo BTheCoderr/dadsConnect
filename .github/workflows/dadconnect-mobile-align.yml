@@ -30,7 +30,7 @@ jobs:
       - name: Install Expo Router peer dependencies
         working-directory: apps/mobile
         run: npx expo install expo-linking expo-constants expo-status-bar react-native-safe-area-context react-native-screens react-native-worklets --npm
-      - name: Align remaining Expo native dependencies
+      - name: Align remaining Expo native dependencies (secure-store plugin configured)
         working-directory: apps/mobile
         run: npx expo install --fix --npm
       - name: Align React TypeScript types
