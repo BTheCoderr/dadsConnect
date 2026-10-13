@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -22,9 +22,15 @@ export default function FeedScreen() {
   const [savedIds,setSavedIds]=useState<Set<string>>(new Set())
   const [loading,setLoading]=useState(true)
   const [loadingMore,setLoadingMore]=useState(false)
+  const [refreshing,setRefreshing]=useState(false)
   const [savingId,setSavingId]=useState<string | null>(null)
+  const requestInFlight=useRef(false)
 
   const load=async (reset=true) => {
+    if(requestInFlight.current) return
+    requestInFlight.current=true
+    if(reset) setRefreshing(true)
+    else setLoadingMore(true)
     try{
       const [feedResult,libraryResult]=await Promise.all([
         api.getFeed(reset ? undefined : cursor),
@@ -43,8 +49,10 @@ export default function FeedScreen() {
     }catch(error){
       Alert.alert("Could not load feed",error instanceof Error ? error.message : "Try again.")
     }finally{
+      requestInFlight.current=false
       setLoading(false)
       setLoadingMore(false)
+      setRefreshing(false)
     }
   }
 
@@ -108,11 +116,10 @@ export default function FeedScreen() {
         data={items}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(true)} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { void load(true) }} />}
         onEndReachedThreshold={0.4}
         onEndReached={() => {
-          if(cursor && !loadingMore){
-            setLoadingMore(true)
+          if(cursor && !requestInFlight.current){
             void load(false)
           }
         }}

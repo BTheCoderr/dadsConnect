@@ -20,6 +20,7 @@ export default function ChatScreen() {
   const [loading,setLoading]=useState(true)
   const [sending,setSending]=useState(false)
   const listRef=useRef<FlatList<GroupMessage> | null>(null)
+  const selectedIdRef=useRef<string | null>(null)
 
   const loadGroups=async () => {
     try{
@@ -30,7 +31,7 @@ export default function ChatScreen() {
       const savedId=await AsyncStorage.getItem(`${LAST_GROUP_KEY}:${session?.user.id ?? 'guest'}`)
       const requestedId=typeof groupId === 'string' ? groupId : undefined
       const target=joined.find(group => group.id === requestedId)
-        ?? joined.find(group => group.id === savedId)
+        ?? (!requestedId ? joined.find(group => group.id === savedId) : undefined)
       if(target) await openGroup(target)
     }catch(error){
       Alert.alert('Could not load chats',error instanceof Error ? error.message : 'Try again.')
@@ -41,17 +42,28 @@ export default function ChatScreen() {
 
   const loadMessages=async (groupId:string) => {
     const next=await ChatAPI.getMessages(groupId)
-    setMessages(next)
+    // Ignore a delayed fetch from a previously opened chat.
+    if(selectedIdRef.current === groupId) setMessages(next)
   }
 
   const openGroup=async (group:DadGroup) => {
+    selectedIdRef.current=group.id
     setSelectedGroup(group)
-    const { data: { session } } = await supabase.auth.getSession()
-    await AsyncStorage.setItem(`${LAST_GROUP_KEY}:${session?.user.id ?? 'guest'}`,group.id)
+    setMessages([])
+    try{
+      const { data: { session } } = await supabase.auth.getSession()
+      if(session?.user.id){
+        await AsyncStorage.setItem(`${LAST_GROUP_KEY}:${session.user.id}`,group.id)
+      }
+    }catch{
+      // A storage issue must not stop an otherwise usable chat.
+    }
     try{
       await loadMessages(group.id)
     }catch(error){
-      Alert.alert('Could not open chat',error instanceof Error ? error.message : 'Try again.')
+      if(selectedIdRef.current === group.id){
+        Alert.alert('Could not open chat',error instanceof Error ? error.message : 'Try again.')
+      }
     }
   }
 
@@ -65,7 +77,10 @@ export default function ChatScreen() {
       }
     })()
   }, [])
-  useEffect(() => { void loadGroups() },[groupId])
+  useEffect(() => {
+    void loadGroups()
+    return () => { selectedIdRef.current=null }
+  },[groupId])
 
   const blockUser = async (userId: string) => {
     if (!currentUserId || userId === currentUserId) return
@@ -114,7 +129,9 @@ export default function ChatScreen() {
     setSending(true)
     try{
       const message=await ChatAPI.sendMessage(selectedGroup.id,content)
-      setMessages(current => current.some(item => item.id === message.id) ? current : [...current,message])
+      if(selectedIdRef.current === selectedGroup.id){
+        setMessages(current => current.some(item => item.id === message.id) ? current : [...current,message])
+      }
       setNewMessage('')
     }catch(error){
       Alert.alert('Could not send message',error instanceof Error ? error.message : 'Try again.')
@@ -144,7 +161,7 @@ export default function ChatScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.chatHeader}>
-        <TouchableOpacity onPress={() => {setSelectedGroup(null);setMessages([])}}><Text style={styles.back}>← Groups</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => {selectedIdRef.current=null;setSelectedGroup(null);setMessages([])}}><Text style={styles.back}>← Groups</Text></TouchableOpacity>
         <View><Text style={styles.chatTitle}>{selectedGroup.name}</Text><Text style={styles.groupMeta}>{selectedGroup.memberCount} members</Text></View>
       </View>
       <FlatList ref={listRef} data={messages.filter(item => !blockedIds.has(item.authorId))} keyExtractor={item => item.id} contentContainerStyle={styles.messages}
