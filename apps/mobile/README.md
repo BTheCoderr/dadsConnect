@@ -26,7 +26,7 @@ Native app icons and Apple signing credentials still need the approved brand art
 
 - The iOS and Android screens now include profile editing, password recovery, account deletion, message reports, and member hiding/unhiding.
 - In Supabase Auth URL Configuration, allow `dadconnect://reset-password` as an additional redirect URL. Test reset emails from a physical device. Without this allowlist the recovery flow cannot complete.
-- Apply the reviewed migration `supabase/migrations/20261013181300_mobile_safety_controls.sql` to the dedicated DadConnect database before users can report or hide members. The app only filters hidden authors inside mobile group chat; it does not remove those members from groups.
+- The reviewed migration has been applied to the dedicated DadConnect database. Recheck RLS on new environments. Migration: `supabase/migrations/20261013181136_mobile_safety_controls.sql` to the dedicated DadConnect database before users can report or hide members. The app only filters hidden authors inside mobile group chat; it does not remove those members from groups.
 - A qualified community administrator must review `public.safety_reports` from a privileged dashboard and respond to abuse reports. Those rows are private to their reporter under RLS, never public.
 - Server-side account deletion requires `SUPABASE_SERVICE_ROLE_KEY` configured on the server host. **Never** expose it as `EXPO_PUBLIC_` or `NEXT_PUBLIC_`.
 - Account deletion requires a fresh password verification plus typing DELETE. It removes the user's login, owned meetups and groups, and dependent records. Real-device and staging tests with disposable accounts are required before release. Deletion of shared owned content can affect other members.
