@@ -68,6 +68,11 @@ export default function ProfileScreen(){
           <Text style={styles.editText}>Edit profile and private preferences</Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.section}>
+        <TouchableOpacity style={styles.deleteAccount} onPress={() => router.push('/(tabs)/profile/delete')}>
+          <Text style={styles.deleteAccountText}>Delete my DadConnect account</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.section}><TouchableOpacity style={styles.logout} onPress={logout}><Text style={styles.logoutText}>Sign out</Text></TouchableOpacity></View>
     </ScrollView>
   )
