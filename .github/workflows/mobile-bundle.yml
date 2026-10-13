@@ -1,0 +1,55 @@
+name: DadConnect Mobile Bundle Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/mobile-bundle.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/mobile-bundle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile:
+    name: Validate Expo JavaScript bundles (no EAS build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Non-production placeholders only, to validate JS bundling without credentials.
+      EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      EXPO_PUBLIC_SUPABASE_KEY: sb_publishable_ci_placeholder
+      EXPO_PUBLIC_API_URL: https://example.com
+      CI: "1"
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked workspace dependencies
+        run: npm ci
+      - name: Typecheck shared and native code
+        run: |
+          npm run typecheck
+          npm run typecheck:mobile
+      - name: Export iOS JavaScript bundle
+        working-directory: apps/mobile
+        run: npx expo export --platform ios --output-dir dist-ci-ios
+      - name: Export Android JavaScript bundle
+        working-directory: apps/mobile
+        run: npx expo export --platform android --output-dir dist-ci-android
